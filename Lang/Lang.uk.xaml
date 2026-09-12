@@ -1,0 +1,173 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <sys:String x:Key="langSubtitle">Тримає вивід звуку на пристрої, який справді працює</sys:String>
+    <sys:String x:Key="langDefaultDevice">ПРИСТРІЙ ЗА ЗАМОВЧУВАННЯМ</sys:String>
+    <sys:String x:Key="langOutput">ВИВІД</sys:String>
+    <sys:String x:Key="langInput">ЗАПИС</sys:String>
+    <sys:String x:Key="langWatching">Стежить</sys:String>
+    <sys:String x:Key="langPausedBadge">Пауза</sys:String>
+    <sys:String x:Key="langNone">(немає)</sys:String>
+    <sys:String x:Key="langNoName">(без назви)</sys:String>
+    <sys:String x:Key="langActiveOf">{0} активних із {1}</sys:String>
+    <sys:String x:Key="langBadgeBlocked">Заборонено правилом «{0}»: основним пристроєм не стане ніколи</sys:String>
+    <sys:String x:Key="langBadgePriority">Пріоритет {0} за правилом «{1}»: що менший номер, то раніше пристрій обирають</sys:String>
+    <sys:String x:Key="langCurrentDevice">Зараз за замовчуванням</sys:String>
+    <sys:String x:Key="langLevelHeader">ГУЧНІСТЬ ПРИ ПЕРЕМИКАННІ</sys:String>
+    <sys:String x:Key="langLevelNone">Гучність не закріплена. Натисніть, щоб задати</sys:String>
+    <sys:String x:Key="langLevelPinned">При перемиканні ставиться {0}% за правилом «{1}»</sys:String>
+    <sys:String x:Key="langLevelShared">Правило «{0}» діє і на інші пристрої з такою назвою</sys:String>
+    <sys:String x:Key="langLevelUnpin">Не закріплювати</sys:String>
+
+    <sys:String x:Key="langMakePriority">У пріоритет</sys:String>
+    <sys:String x:Key="langMakeBlocked">Заборонити</sys:String>
+    <sys:String x:Key="langClearRule">Прибрати з правил</sys:String>
+    <sys:String x:Key="langMoveUp">Вище</sys:String>
+    <sys:String x:Key="langMoveDown">Нижче</sys:String>
+
+    <sys:String x:Key="langPauseHint">Не втручатися у вибір пристрою</sys:String>
+    <sys:String x:Key="langAutostart">Автозапуск</sys:String>
+    <sys:String x:Key="langAutostartHint">Завдання «AudioDirigent» у Планувальнику завдань</sys:String>
+    <sys:String x:Key="langLog">Журнал</sys:String>
+
+    <sys:String x:Key="langStateActive">активно</sys:String>
+    <sys:String x:Key="langStateDisabled">вимкнено</sys:String>
+    <sys:String x:Key="langStateNotPresent">немає в системі</sys:String>
+    <sys:String x:Key="langStateUnplugged">не під'єднано</sys:String>
+
+    <sys:String x:Key="langDongleNotFound">Донгл HyperX не знайдено — гарнітура відстежується за подіями Windows</sys:String>
+    <sys:String x:Key="langDongleOn">Донгл HyperX: гарнітуру ввімкнено</sys:String>
+    <sys:String x:Key="langDongleOff">Донгл HyperX: гарнітуру вимкнено</sys:String>
+    <sys:String x:Key="langDongleSilent">Донгл HyperX знайдено, але він не відповідає на запит стану</sys:String>
+
+    <sys:String x:Key="langTrayOpen">Відкрити</sys:String>
+    <sys:String x:Key="langTrayPause">Призупинити</sys:String>
+    <sys:String x:Key="langTrayResume">Відновити</sys:String>
+    <sys:String x:Key="langRecoverHint">Повернути зниклу гарнітуру: перевстановити пристрої HyperX і, якщо не допоможе, перезапустити службу звуку. Потрібні права адміністратора.</sys:String>
+    <sys:String x:Key="langRecoverDrivers">Перезапустити драйвери звуку</sys:String>
+    <sys:String x:Key="langRecoverNgenuity">Перезапустити NGENUITY і драйвери</sys:String>
+    <sys:String x:Key="langTrayRecover">Відновити звук</sys:String>
+    <sys:String x:Key="langTrayExit">Вихід</sys:String>
+
+    <sys:String x:Key="langLogStart">Запуск.</sys:String>
+    <sys:String x:Key="langLogBuild">Запуск. Версія {0}.</sys:String>
+    <sys:String x:Key="langLogPaused">Призупинено.</sys:String>
+    <sys:String x:Key="langLogResumed">Відновлено.</sys:String>
+    <sys:String x:Key="langLogSwitched">Перемкнено: «{0}» → «{1}»</sys:String>
+    <sys:String x:Key="langLogSwitchedFromNone">Перемкнено на «{0}»</sys:String>
+    <sys:String x:Key="langLogSwitchedIn">Мікрофон перемкнено: «{0}» → «{1}»</sys:String>
+    <sys:String x:Key="langLogSwitchedInFromNone">Мікрофон перемкнено на «{0}»</sys:String>
+    <sys:String x:Key="langLogDongleFound">Знайдено донгл HyperX (PID {0}), опитування кожні {1} с.</sys:String>
+    <sys:String x:Key="langLogDongleOn">Донгл: гарнітуру ввімкнено.</sys:String>
+    <sys:String x:Key="langLogDongleOff">Донгл: гарнітуру вимкнено.</sys:String>
+    <sys:String x:Key="langLogDongleSilent">Донгл не відповідає.</sys:String>
+    <sys:String x:Key="langLogAutostartOn">Створено завдання автозапуску «{0}».</sys:String>
+    <sys:String x:Key="langLogAutostartOff">Завдання автозапуску «{0}» видалено.</sys:String>
+    <sys:String x:Key="langLogSuspend">Перехід у сон.</sys:String>
+    <sys:String x:Key="langLogResume">Пробудження — перевіряю пристрої.</sys:String>
+    <sys:String x:Key="langLogHeadsetLost">Гарнітура не повернулася після сну.</sys:String>
+    <sys:String x:Key="langLogNgenuityStopped">NGENUITY знято — драйвер звільнено.</sys:String>
+    <sys:String x:Key="langLogNgenuityStarted">NGENUITY запущено знову та згорнуто в трей.</sys:String>
+    <sys:String x:Key="langLogNgenuityWindow">NGENUITY запущено знову, але вікно так і не з'явилося — згорнути його не вдалося.</sys:String>
+    <sys:String x:Key="langLogRecoveryDevices">Перевстановлюю пристрої: {0}</sys:String>
+    <sys:String x:Key="langLogRecoveryService">Перевстановлення не допомогло — перезапускаю службу звуку.</sys:String>
+    <sys:String x:Key="langLogRecoveryOk">Гарнітура повернулася.</sys:String>
+    <sys:String x:Key="langLogRecoveryFailed">Відновити не вдалося — допоможе лише перезавантаження.</sys:String>
+    <sys:String x:Key="langLogRecoveryDenied">Для відновлення потрібні права адміністратора: запустіть програму від імені адміністратора й увімкніть автозапуск заново.</sys:String>
+    <sys:String x:Key="langLogFatal">ЗБІЙ: {0}</sys:String>
+    <sys:String x:Key="langLogMigrated">Налаштування перенесено з текстових файлів у config.json.</sys:String>
+    <sys:String x:Key="langUsbPower">Тримати порти живими</sys:String>
+    <sys:String x:Key="langUsbPowerHint">Заборонити Windows вимикати живлення портів USB</sys:String>
+    <sys:String x:Key="langSettings">Налаштування</sys:String>
+    <sys:String x:Key="langNotify">Повідомляти</sys:String>
+    <sys:String x:Key="langNotifyHint">Показувати спливаюче повідомлення при зміні пристрою</sys:String>
+    <sys:String x:Key="langHotkeys">Гарячі клавіші</sys:String>
+    <sys:String x:Key="langHotkeysHint">{0} — пауза, {1} — відновити звук</sys:String>
+    <sys:String x:Key="langCheckUpdates">Перевірити оновлення</sys:String>
+    <sys:String x:Key="langUpdateChecking">Питаю GitHub…</sys:String>
+    <sys:String x:Key="langUpdateAvailable">Доступна версія {0} →</sys:String>
+    <sys:String x:Key="langUpdateLatest">Встановлено найновішу версію, {0}</sys:String>
+    <sys:String x:Key="langUpdateFailed">Перевірити не вдалося</sys:String>
+    <sys:String x:Key="langErrorConfigWrite">Не вдалося записати config.json: налаштування не збережено.</sys:String>
+    <sys:String x:Key="langErrorNeedsAdmin">Потрібні права адміністратора: запустіть програму від імені адміністратора.</sys:String>
+    <sys:String x:Key="langLogUsbHeld">Портам USB заборонено вимикати живлення: {0}</sys:String>
+    <sys:String x:Key="langLogUsbReleased">Портам USB повернуто налаштування за замовчуванням: {0}</sys:String>
+    <sys:String x:Key="langLogHotkeyReady">Сполучення {0} зареєстровано.</sys:String>
+    <sys:String x:Key="langLogHotkeyBusy">Сполучення {0} зайняте іншою програмою.</sys:String>
+    <sys:String x:Key="langLogHotkeyBad">Сполучення {0} розібрати не вдалося.</sys:String>
+    <sys:String x:Key="langClearShared">Правила «{0}» діють не лише на вибраний пристрій. Прибрати їх усе одно?</sys:String>
+    <sys:String x:Key="langLogSwitchError">ПОМИЛКА під час перемикання: {0}</sys:String>
+    <sys:String x:Key="langLogUiError">ПОМИЛКА інтерфейсу: {0}</sys:String>
+    <sys:String x:Key="langSchedulerTitle">Планувальник завдань</sys:String>
+
+    <sys:String x:Key="langMinimize">Згорнути в трей</sys:String>
+    <sys:String x:Key="langMaximize">Розгорнути</sys:String>
+    <sys:String x:Key="langClose">Закрити в трей</sys:String>
+
+    <sys:String x:Key="langLogVolume">Гучність «{0}» виставлено на {1}%.</sys:String>
+    <sys:String x:Key="langLogUpdateNone">Оновлень не знайдено, поточна версія {0}.</sys:String>
+    <sys:String x:Key="langLogUpdateFound">Доступна версія {0}.</sys:String>
+    <sys:String x:Key="langLogUpdateFailed">Не вдалося перевірити оновлення: GitHub не відповів.</sys:String>
+
+    <sys:String x:Key="langErrorSchtasks">schtasks {0} повернув код {1}.</sys:String>
+
+    <sys:String x:Key="langCliError">ПОМИЛКА: {0}</sys:String>
+    <sys:String x:Key="langCliUsage" xml:space="preserve">AudioDirigent — тримає пристрій виводу на живому залізі.
+
+  (без аргументів)      відкрити вікно, працювати в треї
+  --tray                запуск у треї без вікна (використовує автозапуск)
+  --once                застосувати правило один раз і вийти
+  --list                показати пристрої виводу та поточний за замовчуванням
+  --test                самоперевірка: перемикання справді працює
+  --hid                 HID-інтерфейси HyperX і відповідь донгла на запит стану
+  --recover [ngenuity]  повернути зниклу гарнітуру: перевстановити пристрої
+                        HyperX і, якщо треба, перезапустити службу звуку;
+                        ngenuity заодно знімає й піднімає NGENUITY
+  --autostart [on|off]  стан завдання автозапуску, увімкнення, вимкнення</sys:String>
+
+    <sys:String x:Key="langCliTaskPresent">Завдання «{0}» є в планувальнику, запускає: "{1}" --tray</sys:String>
+    <sys:String x:Key="langCliTaskAbsent">Завдання «{0}» у планувальнику немає.</sys:String>
+
+    <sys:String x:Key="langCliNoHid">HID-інтерфейсів HyperX не знайдено (VID 03F0 / 0951). Гарнітуру підключено?</sys:String>
+    <sys:String x:Key="langCliHidHeader">VID  PID  UsagePage Usage In Out  Шлях</sys:String>
+    <sys:String x:Key="langCliNoControlInterface">Керуючого інтерфейсу (usage page 01C0) немає — модель дротова або донгл його не виставляє. Перемикання працюватиме за подіями Windows.</sys:String>
+    <sys:String x:Key="langCliDongleReply">Відповідь донгла: {0}</sys:String>
+    <sys:String x:Key="langCliNoReply">(немає відповіді)</sys:String>
+    <sys:String x:Key="langCliHeadsetOn">Гарнітуру ввімкнено: {0}</sys:String>
+    <sys:String x:Key="langCliUnknown">невідомо</sys:String>
+
+    <sys:String x:Key="langCliDefaultMarker">&lt;-- за замовчуванням</sys:String>
+    <sys:String x:Key="langCliLanguageOk">OK: у всіх словниках мов однаковий набір ключів.</sys:String>
+    <sys:String x:Key="langCliLanguageFail">ПРОВАЛ, словники мов: {0}</sys:String>
+    <sys:String x:Key="langCliLanguageMissing">у Lang.{0}.xaml немає {1}</sys:String>
+
+    <sys:String x:Key="langRuleHeadsetFirst">гарнітура важливіша за динаміки</sys:String>
+    <sys:String x:Key="langRuleSpeakersWhenOff">за вимкненої гарнітури перемагають динаміки</sys:String>
+    <sys:String x:Key="langRuleBlockedNever">заборонений пристрій не обирається ніколи</sys:String>
+    <sys:String x:Key="langRulePatternSurvivesPriority">загальний патерн переживає додавання в пріоритет</sys:String>
+    <sys:String x:Key="langRuleUnlistedToPriority">пристрій поза правилами потрапляє в пріоритети</sys:String>
+    <sys:String x:Key="langRuleBlockKeepsPriority">заборона віртуального пристрою зберігає пріоритет гарнітури</sys:String>
+    <sys:String x:Key="langRulePatternSurvivesBlock">загальний патерн переживає заборону</sys:String>
+    <sys:String x:Key="langRuleUnlistedToBlocked">пристрій поза правилами потрапляє в заборони</sys:String>
+    <sys:String x:Key="langCliJournalOk">OK: запис журналу читається з файлу без втрат.</sys:String>
+    <sys:String x:Key="langCliStoreOk">OK: запис і читання config.json збігаються.</sys:String>
+    <sys:String x:Key="langCliStoreFail">ЗБІЙ: config.json читається не тим, чим записаний.</sys:String>
+    <sys:String x:Key="langCliBalloonOk">OK: повідомлення трею йдуть без звуку.</sys:String>
+    <sys:String x:Key="langCliBalloonFail">ЗБІЙ: тихі повідомлення недоступні, звук повернеться.</sys:String>
+    <sys:String x:Key="langCliParentOk">OK: гарнітура перезапускається через складений пристрій.</sys:String>
+    <sys:String x:Key="langCliParentFail">ЗБІЙ: гарнітура перезапускається без HID-інтерфейсу.</sys:String>
+    <sys:String x:Key="langCliVolumeFail">ПОМИЛКА: гучність пристрою не читається або не встановлюється.</sys:String>
+    <sys:String x:Key="langCliVolumeOk">OK: гучність пристрою читається і встановлюється.</sys:String>
+    <sys:String x:Key="langCliJournalFail">ПОМИЛКА: запис журналу не повернувся з файлу в початковому вигляді.</sys:String>
+    <sys:String x:Key="langCliRuleOk">OK: правило вибору пристрою рахується правильно.</sys:String>
+    <sys:String x:Key="langCliRuleFail">ПРОВАЛ, правило вибору: {0}</sys:String>
+    <sys:String x:Key="langCliActiveDevices">Активних пристроїв виводу: {0}, зараз за замовчуванням: {1}</sys:String>
+    <sys:String x:Key="langCliNoActive">ПРОПУЩЕНО: активних пристроїв виводу немає.</sys:String>
+    <sys:String x:Key="langCliSameFail">ПРОВАЛ: призначення того самого пристрою скинуло замовчування.</sys:String>
+    <sys:String x:Key="langCliPartialOk">ЧАСТКОВО OK: IPolicyConfig відповідає. Для повної перевірки потрібен другий активний пристрій.</sys:String>
+    <sys:String x:Key="langCliSwitchFail">ПРОВАЛ: не перемкнулося на «{0}», лишилося «{1}».</sys:String>
+    <sys:String x:Key="langCliRestoreFail">ПРОВАЛ: не відновилося на «{0}», лишилося «{1}».</sys:String>
+    <sys:String x:Key="langCliSwitchOk">OK: перемикання на «{0}» і повернення на «{1}» працюють.</sys:String>
+
+</ResourceDictionary>

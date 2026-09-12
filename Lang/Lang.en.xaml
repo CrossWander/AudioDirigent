@@ -1,0 +1,174 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <sys:String x:Key="langSubtitle">Keeps audio output on a device that actually works</sys:String>
+    <sys:String x:Key="langDefaultDevice">DEFAULT DEVICE</sys:String>
+    <sys:String x:Key="langOutput">OUTPUT</sys:String>
+    <sys:String x:Key="langInput">INPUT</sys:String>
+    <sys:String x:Key="langWatching">Watching</sys:String>
+    <sys:String x:Key="langPausedBadge">Paused</sys:String>
+    <sys:String x:Key="langNone">(none)</sys:String>
+    <sys:String x:Key="langNoName">(unnamed)</sys:String>
+    <sys:String x:Key="langActiveOf">{0} active of {1}</sys:String>
+    <sys:String x:Key="langBadgeBlocked">Blocked by the rule “{0}”: never becomes the default device</sys:String>
+    <sys:String x:Key="langBadgePriority">Priority {0} by the rule “{1}”: the lower the number, the sooner the device is picked</sys:String>
+    <sys:String x:Key="langCurrentDevice">Current default</sys:String>
+    <sys:String x:Key="langLevelHeader">LEVEL ON SWITCH</sys:String>
+    <sys:String x:Key="langLevelNone">No level pinned. Click to set one</sys:String>
+    <sys:String x:Key="langLevelPinned">Set to {0}% on switch, by the rule “{1}”</sys:String>
+    <sys:String x:Key="langLevelShared">The rule “{0}” covers other devices with that name too</sys:String>
+    <sys:String x:Key="langLevelUnpin">Do not pin</sys:String>
+
+    <sys:String x:Key="langMakePriority">Prioritise</sys:String>
+    <sys:String x:Key="langMakeBlocked">Block</sys:String>
+    <sys:String x:Key="langClearRule">Clear rule</sys:String>
+    <sys:String x:Key="langMoveUp">Up</sys:String>
+    <sys:String x:Key="langMoveDown">Down</sys:String>
+
+    <sys:String x:Key="langPauseHint">Leave the device choice alone</sys:String>
+    <sys:String x:Key="langAutostart">Run at logon</sys:String>
+    <sys:String x:Key="langAutostartHint">“AudioDirigent” task in Task Scheduler</sys:String>
+    <sys:String x:Key="langLog">Log</sys:String>
+
+    <sys:String x:Key="langStateActive">active</sys:String>
+    <sys:String x:Key="langStateDisabled">disabled</sys:String>
+    <sys:String x:Key="langStateNotPresent">not present</sys:String>
+    <sys:String x:Key="langStateUnplugged">unplugged</sys:String>
+
+    <sys:String x:Key="langDongleNotFound">No HyperX dongle found — the headset is tracked through Windows events</sys:String>
+    <sys:String x:Key="langDongleOn">HyperX dongle: headset is on</sys:String>
+    <sys:String x:Key="langDongleOff">HyperX dongle: headset is off</sys:String>
+    <sys:String x:Key="langDongleSilent">HyperX dongle found but not answering the status query</sys:String>
+
+    <sys:String x:Key="langTrayOpen">Open</sys:String>
+    <sys:String x:Key="langTrayPause">Pause</sys:String>
+    <sys:String x:Key="langTrayResume">Resume</sys:String>
+    <sys:String x:Key="langRecoverHint">Bring a vanished headset back: reinstall the HyperX devices and, if that is not enough, restart the audio service. Needs administrator rights.</sys:String>
+    <sys:String x:Key="langRecoverDrivers">Restart the audio drivers</sys:String>
+    <sys:String x:Key="langRecoverNgenuity">Restart NGENUITY and the drivers</sys:String>
+    <sys:String x:Key="langTrayRecover">Restore sound</sys:String>
+    <sys:String x:Key="langTrayExit">Exit</sys:String>
+
+    <sys:String x:Key="langLogStart">Started.</sys:String>
+    <sys:String x:Key="langLogBuild">Started. Version {0}.</sys:String>
+    <sys:String x:Key="langLogPaused">Paused.</sys:String>
+    <sys:String x:Key="langLogResumed">Resumed.</sys:String>
+    <sys:String x:Key="langLogSwitched">Switched: “{0}” → “{1}”</sys:String>
+    <sys:String x:Key="langLogSwitchedFromNone">Switched to “{0}”</sys:String>
+    <sys:String x:Key="langLogSwitchedIn">Microphone switched: “{0}” → “{1}”</sys:String>
+    <sys:String x:Key="langLogSwitchedInFromNone">Microphone switched to “{0}”</sys:String>
+    <sys:String x:Key="langLogDongleFound">HyperX dongle found (PID {0}), polling every {1} s.</sys:String>
+    <sys:String x:Key="langLogDongleOn">Dongle: headset is on.</sys:String>
+    <sys:String x:Key="langLogDongleOff">Dongle: headset is off.</sys:String>
+    <sys:String x:Key="langLogDongleSilent">Dongle is not answering.</sys:String>
+    <sys:String x:Key="langLogAutostartOn">Logon task “{0}” created.</sys:String>
+    <sys:String x:Key="langLogAutostartOff">Logon task “{0}” removed.</sys:String>
+    <sys:String x:Key="langLogSuspend">Going to sleep.</sys:String>
+    <sys:String x:Key="langLogResume">Woke up — rechecking the devices.</sys:String>
+    <sys:String x:Key="langLogHeadsetLost">The headset did not come back after sleep.</sys:String>
+    <sys:String x:Key="langLogNgenuityStopped">NGENUITY killed — the driver is free.</sys:String>
+    <sys:String x:Key="langLogNgenuityStarted">NGENUITY started again and sent to the tray.</sys:String>
+    <sys:String x:Key="langLogNgenuityWindow">NGENUITY started again, but its window never showed up — could not send it to the tray.</sys:String>
+    <sys:String x:Key="langLogRecoveryDevices">Reinstalling devices: {0}</sys:String>
+    <sys:String x:Key="langLogRecoveryService">Reinstalling did not help — restarting the audio service.</sys:String>
+    <sys:String x:Key="langLogRecoveryOk">The headset is back.</sys:String>
+    <sys:String x:Key="langLogRecoveryFailed">Recovery failed — only a reboot will help.</sys:String>
+    <sys:String x:Key="langLogRecoveryDenied">Recovery needs administrator rights: run the program as administrator and turn autostart on again.</sys:String>
+    <sys:String x:Key="langLogFatal">CRASH: {0}</sys:String>
+    <sys:String x:Key="langLogMigrated">Settings moved out of the text files into config.json.</sys:String>
+    <sys:String x:Key="langUsbPower">Keep the ports awake</sys:String>
+    <sys:String x:Key="langUsbPowerHint">Stop Windows from powering down the USB ports</sys:String>
+    <sys:String x:Key="langSettings">Settings</sys:String>
+    <sys:String x:Key="langNotify">Notify</sys:String>
+    <sys:String x:Key="langNotifyHint">Show a balloon when the device changes</sys:String>
+    <sys:String x:Key="langHotkeys">Hotkeys</sys:String>
+    <sys:String x:Key="langHotkeysHint">{0} pauses, {1} restores sound</sys:String>
+    <sys:String x:Key="langCheckUpdates">Check for updates</sys:String>
+    <sys:String x:Key="langUpdateChecking">Asking GitHub…</sys:String>
+    <sys:String x:Key="langUpdateAvailable">Version {0} is out →</sys:String>
+    <sys:String x:Key="langUpdateLatest">Latest version already, {0}</sys:String>
+    <sys:String x:Key="langUpdateFailed">Could not check</sys:String>
+    <sys:String x:Key="langErrorConfigWrite">Could not write config.json: the setting was not saved.</sys:String>
+    <sys:String x:Key="langErrorNeedsAdmin">Administrator rights are needed: run the program as administrator.</sys:String>
+    <sys:String x:Key="langLogUsbHeld">USB ports no longer allowed to power down: {0}</sys:String>
+    <sys:String x:Key="langLogUsbReleased">USB ports returned to their defaults: {0}</sys:String>
+    <sys:String x:Key="langLogHotkeyReady">Hotkey {0} registered.</sys:String>
+    <sys:String x:Key="langLogHotkeyBusy">Hotkey {0} is taken by another program.</sys:String>
+    <sys:String x:Key="langLogHotkeyBad">Hotkey {0} could not be parsed.</sys:String>
+    <sys:String x:Key="langClearShared">The rules "{0}" govern more than the selected device. Remove them anyway?</sys:String>
+    <sys:String x:Key="langLogSwitchError">ERROR while switching: {0}</sys:String>
+    <sys:String x:Key="langLogUiError">UI ERROR: {0}</sys:String>
+    <sys:String x:Key="langSchedulerTitle">Task Scheduler</sys:String>
+
+    <sys:String x:Key="langMinimize">Minimise to tray</sys:String>
+    <sys:String x:Key="langMaximize">Maximise</sys:String>
+    <sys:String x:Key="langClose">Close to tray</sys:String>
+
+    <sys:String x:Key="langLogVolume">Volume of “{0}” set to {1}%.</sys:String>
+    <sys:String x:Key="langLogUpdateNone">No update found; running {0}.</sys:String>
+    <sys:String x:Key="langLogUpdateFound">Version {0} is out.</sys:String>
+    <sys:String x:Key="langLogUpdateFailed">The update check failed: GitHub did not answer.</sys:String>
+
+    <sys:String x:Key="langErrorSchtasks">schtasks {0} returned code {1}.</sys:String>
+
+    <sys:String x:Key="langCliError">ERROR: {0}</sys:String>
+    <sys:String x:Key="langCliUsage" xml:space="preserve">AudioDirigent — keeps the audio output on a device that actually works.
+
+  (no arguments)        open the window, keep running in the tray
+  --tray                start in the tray without a window (used by autostart)
+  --once                apply the rule once and exit
+  --list                list the output devices and the current default
+  --test                self-check: switching really works
+  --hid                 HyperX HID interfaces and the dongle status reply
+  --recover [ngenuity]  bring a vanished headset back: reinstall the HyperX
+                        devices and, if needed, restart the audio service;
+                        ngenuity kills and restarts NGENUITY around it
+  --autostart [on|off]  autostart task state, create it, remove it</sys:String>
+
+    <sys:String x:Key="langCliTaskPresent">Task “{0}” is in Task Scheduler, starts: "{1}" --tray</sys:String>
+    <sys:String x:Key="langCliTaskAbsent">Task “{0}” is not in Task Scheduler.</sys:String>
+
+    <sys:String x:Key="langCliNoHid">No HyperX HID interfaces found (VID 03F0 / 0951). Is the headset connected?</sys:String>
+    <sys:String x:Key="langCliHidHeader">VID  PID  UsagePage Usage In Out  Path</sys:String>
+    <sys:String x:Key="langCliNoControlInterface">No control interface (usage page 01C0) — the model is wired, or the dongle does not expose one. Switching will run on Windows events.</sys:String>
+    <sys:String x:Key="langCliDongleReply">Dongle reply: {0}</sys:String>
+    <sys:String x:Key="langCliNoReply">(no reply)</sys:String>
+    <sys:String x:Key="langCliHeadsetOn">Headset on: {0}</sys:String>
+    <sys:String x:Key="langCliUnknown">unknown</sys:String>
+
+    <sys:String x:Key="langCliDefaultMarker">&lt;-- default</sys:String>
+    <sys:String x:Key="langCliLanguageOk">OK: every language dictionary holds the same keys.</sys:String>
+    <sys:String x:Key="langCliLanguageFail">FAILED, language dictionaries: {0}</sys:String>
+    <sys:String x:Key="langCliLanguageMissing">Lang.{0}.xaml has no {1}</sys:String>
+
+    <sys:String x:Key="langRuleHeadsetFirst">the headset outranks the speakers</sys:String>
+    <sys:String x:Key="langRuleSpeakersWhenOff">the speakers win while the headset is off</sys:String>
+    <sys:String x:Key="langRuleBlockedNever">a blocked device is never selected</sys:String>
+    <sys:String x:Key="langRulePatternSurvivesPriority">the generic pattern survives prioritising</sys:String>
+    <sys:String x:Key="langRuleUnlistedToPriority">an unlisted device is added to the priorities</sys:String>
+    <sys:String x:Key="langRuleBlockKeepsPriority">blocking a virtual device keeps the headset priority</sys:String>
+    <sys:String x:Key="langRulePatternSurvivesBlock">the generic pattern survives blocking</sys:String>
+    <sys:String x:Key="langRuleUnlistedToBlocked">an unlisted device is added to the blocks</sys:String>
+    <sys:String x:Key="langCliJournalOk">OK: a journal entry survives the round trip through the file.</sys:String>
+    <sys:String x:Key="langCliStoreOk">OK: config.json reads back exactly as written.</sys:String>
+    <sys:String x:Key="langCliStoreFail">FAILED: config.json does not read back as written.</sys:String>
+    <sys:String x:Key="langCliBalloonOk">OK: tray notifications go out silently.</sys:String>
+    <sys:String x:Key="langCliBalloonFail">FAILED: silent notifications are unavailable, the sound is back.</sys:String>
+    <sys:String x:Key="langCliParentOk">OK: the headset restarts through its composite device.</sys:String>
+    <sys:String x:Key="langCliParentFail">FAILED: the headset restarts without its HID interface.</sys:String>
+    <sys:String x:Key="langCliVolumeFail">FAILED: endpoint volume cannot be read or set.</sys:String>
+    <sys:String x:Key="langCliVolumeOk">OK: endpoint volume can be read and set.</sys:String>
+    <sys:String x:Key="langCliJournalFail">FAILED: a journal entry did not come back from the file unchanged.</sys:String>
+    <sys:String x:Key="langCliRuleOk">OK: the device selection rule computes correctly.</sys:String>
+    <sys:String x:Key="langCliRuleFail">FAILED, selection rule: {0}</sys:String>
+    <sys:String x:Key="langCliActiveDevices">Active output devices: {0}, current default: {1}</sys:String>
+    <sys:String x:Key="langCliNoActive">SKIPPED: there are no active output devices.</sys:String>
+    <sys:String x:Key="langCliSameFail">FAILED: assigning the same device cleared the default.</sys:String>
+    <sys:String x:Key="langCliPartialOk">PARTLY OK: IPolicyConfig answers. A full check needs a second active device.</sys:String>
+    <sys:String x:Key="langCliSwitchFail">FAILED: did not switch to “{0}”, still on “{1}”.</sys:String>
+    <sys:String x:Key="langCliRestoreFail">FAILED: did not restore “{0}”, still on “{1}”.</sys:String>
+    <sys:String x:Key="langCliSwitchOk">OK: switching to “{0}” and back to “{1}” both work.</sys:String>
+
+</ResourceDictionary>

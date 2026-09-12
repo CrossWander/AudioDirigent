@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyName>AudioDirigent</AssemblyName>
+    <RootNamespace>AudioDirigent</RootNamespace>
+    <Version>0.1.0</Version>
+    <Authors>Dykalo Pavlo</Authors>
+    <Copyright>© 2026 Dykalo Pavlo</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Product>AudioDirigent</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+    <Resource Include="app-paused.ico" />
+  </ItemGroup>
+
+</Project>

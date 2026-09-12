@@ -1,0 +1,25 @@
+HyperX Audio Guard
+Copyright 2026 Dykalo Pavlo
+
+This product includes software developed by Dykalo Pavlo.
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
+--------------------------------------------------------------------------------
+Attribution
+
+The HyperX wireless dongle status protocol (HID usage page 0x1C0, report id 0x0C,
+status byte [6]) was reverse engineered and documented by the project
+platorp/HyperX-Cloud-III-3-S-Audio-Switcher, licensed under the MIT License:
+https://github.com/platorp/HyperX-Cloud-III-3-S-Audio-Switcher
+
+No source code from that project is included in this work. The protocol is
+re-implemented here from scratch in C# on top of the Win32 HID API.
+
+--------------------------------------------------------------------------------
+Trademarks
+
+HyperX, NGENUITY and Cloud are trademarks of HP Inc. Realtek is a trademark of
+Realtek Semiconductor Corp. This project is an independent work, not affiliated
+with, endorsed by, or supported by any of these companies. Their names are used
+only to identify the hardware and drivers this software interoperates with.

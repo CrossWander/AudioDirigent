@@ -1,0 +1,23 @@
+root = true
+
+[*]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Разметка остаётся на пробелах: в XAML ими выровнены и продолжения атрибутов,
+# и текст справки --help внутри строковых значений — табы сломали бы и то, и другое.
+[*.{xaml,csproj,slnx,config,json}]
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+[*.md]
+charset = utf-8
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
