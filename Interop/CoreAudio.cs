@@ -89,6 +89,10 @@ internal struct PropertyKey
 	// эндпоинта. Документированный PKEY_Device_InstanceId не подходит: он описывает сам
 	// эндпоинт (SWD\MMDEVAPI\…), а на Windows 10 попросту пуст.
 	public static PropertyKey Node => new(new Guid("b3f8fa53-0004-438e-9003-51a46e139bfc"), 2);
+
+	// System.Devices.ContainerId — общий для всех эндпоинтов одной железки. Наушники,
+	// микрофон и телефонный профиль гарнитуры приходят разными узлами, а корпус у них один.
+	public static PropertyKey Container => new(new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
 }
 
 /// <summary>Чем устройство является по мнению Windows. Значения — те, что отдаёт Core Audio.</summary>
@@ -122,11 +126,16 @@ internal struct PropVariant
 
 	private const ushort VT_UI4 = 19;
 	private const ushort VT_LPWSTR = 31;
+	private const ushort VT_CLSID = 72;
 
 	public string? AsString() => VarType == VT_LPWSTR ? Marshal.PtrToStringUni(Pointer) : null;
 
 	/// <summary>Число лежит в первых четырёх байтах того же поля, что и указатель.</summary>
 	public uint? AsNumber() => VarType == VT_UI4 ? (uint)(Pointer.ToInt64() & 0xFFFFFFFF) : null;
+
+	/// <summary>Идентификатор лежит не в самой структуре, а по указателю из неё.</summary>
+	public Guid? AsGuid() =>
+		VarType == VT_CLSID && Pointer != IntPtr.Zero ? Marshal.PtrToStructure<Guid>(Pointer) : null;
 }
 
 // Недокументированный, но стабильный с Windows 7: единственный способ сменить устройство по умолчанию.
@@ -174,6 +183,7 @@ internal interface IMMNotificationClient
 }
 
 /// <param name="Node">Путь PnP устройства за эндпоинтом; null — Windows его не отдала.</param>
+/// <param name="Container">Корпус, общий для всех эндпоинтов одной железки; null — неизвестен.</param>
 internal sealed record AudioEndpoint(
 	string Id,
 	string Name,
@@ -181,7 +191,8 @@ internal sealed record AudioEndpoint(
 	EDataFlow Flow,
 	FormFactor Form,
 	string Bus,
-	string? Node)
+	string? Node,
+	Guid? Container)
 {
 	/// <summary>Устройство подключено по Bluetooth — хоть музыкой, хоть телефонным профилем.</summary>
 	public bool Bluetooth => Bus.StartsWith("BTH", StringComparison.OrdinalIgnoreCase);
@@ -245,7 +256,8 @@ internal static class Audio
 			flow,
 			form,
 			Text(store, PropertyKey.Bus) ?? string.Empty,
-			node);
+			node,
+			Read(store, PropertyKey.Container, value => value.AsGuid()));
 	}
 
 	private static string? Text(IPropertyStore store, PropertyKey key) => Read(store, key, value => value.AsString());
@@ -306,6 +318,7 @@ internal static class Audio
 					flow,
 					FormFactor.Unknown,
 					string.Empty,
+					null,
 					null);
 		}
 		catch (COMException)

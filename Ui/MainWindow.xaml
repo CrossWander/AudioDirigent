@@ -594,6 +594,7 @@
                     <ListBox x:Name="Devices" Background="Transparent" BorderThickness="0"
                              ItemContainerStyle="{StaticResource DeviceItem}"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             SelectionChanged="OnDeviceSelected"
                              HorizontalContentAlignment="Stretch">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -639,6 +640,13 @@
             <!-- Кнопки -->
             <Grid Grid.Row="3" Margin="0,12,0,0">
                 <StackPanel Orientation="Horizontal">
+                    <!-- Те же два предложения, что были в карточке над треем: она живёт четыре
+                         секунды, и пропустить её — обычное дело, а решать всё равно надо здесь -->
+                    <Button x:Name="MakeMainButton" Style="{StaticResource Flat}" Visibility="Collapsed"
+                            Content="{DynamicResource langPopupMakeMain}" Margin="0,0,8,0" Click="OnMakeMain"/>
+                    <Button x:Name="LinkButton" Style="{StaticResource Flat}" Visibility="Collapsed"
+                            Margin="0,0,8,0" MinWidth="104" Click="OnLink"/>
+
                     <Button Style="{StaticResource Flat}" Content="{DynamicResource langMakePriority}" Click="OnMakePriority"/>
                     <Button Style="{StaticResource Flat}" Content="{DynamicResource langMakeBlocked}" Margin="8,0,0,0" Click="OnMakeBlocked"/>
                     <Button Style="{StaticResource Flat}" Content="{DynamicResource langClearRule}" Margin="8,0,0,0" Click="OnClearRule"/>

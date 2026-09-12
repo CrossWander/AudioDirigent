@@ -179,4 +179,10 @@
     <sys:String x:Key="langCliPopupOk">OK: the connection card builds for every device kind.</sys:String>
     <sys:String x:Key="langCliPopupFail">FAILED: the connection card does not build — {0}</sys:String>
 
+    <sys:String x:Key="langConnect">Connect</sys:String>
+    <sys:String x:Key="langDisconnect">Disconnect</sys:String>
+    <sys:String x:Key="langBadgeUndecided">No rule covers this device yet: make it the main one, or block it</sys:String>
+    <sys:String x:Key="langLogConnectFailed">Could not connect {0}.</sys:String>
+    <sys:String x:Key="langLogDisconnectFailed">Could not disconnect {0}.</sys:String>
+
 </ResourceDictionary>

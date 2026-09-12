@@ -198,6 +198,7 @@ public partial class MainWindow : Window
 		}
 
 		UpdateStateBadge();
+		UpdateActions();
 	}
 
 	private DeviceRow Row(AudioEndpoint device, Config config, AudioEndpoint? current)
@@ -214,14 +215,20 @@ public partial class MainWindow : Window
 			? config.Blocked.First(pattern => Config.Matches(device, pattern))
 			: rank >= 0 ? config.Priority[rank] : "";
 
+		// Живое устройство, о котором правила не знают ничего, помечается вместо номера:
+		// решение по нему ещё не принято, и это единственное, что о нём можно сказать.
+		// Молчащие устройства не помечаем — список и так наполовину из них.
+		var undecided = active && !blocked && rank < 0;
+
 		return new DeviceRow(
 			Device: device,
 			Name: device.Name,
 			State: Describe(device.State),
-			Badge: blocked ? "✕" : rank >= 0 ? (rank + 1).ToString() : "",
+			Badge: blocked ? "✕" : rank >= 0 ? (rank + 1).ToString() : undecided ? "+" : "",
 			// Значок сам по себе ничего не объясняет; null у пустого — подсказки просто нет.
 			BadgeHint: blocked ? Localization.Format("langBadgeBlocked", rule)
-				: rank >= 0 ? Localization.Format("langBadgePriority", rank + 1, rule) : null,
+				: rank >= 0 ? Localization.Format("langBadgePriority", rank + 1, rule)
+				: undecided ? Localization.Get("langBadgeUndecided") : null,
 			Note: isCurrent ? Localization.Get("langCurrentDevice") : "",
 			// Прочерк вместо пустоты: плашка — единственный способ задать уровень, и она
 			// должна быть видна и там, где закреплять ещё нечего.
@@ -231,7 +238,7 @@ public partial class MainWindow : Window
 				: Localization.Format("langLevelPinned", level.Percent, level.Match),
 			LevelBackground: level is null ? Brushes.Transparent : Paint("Badge"),
 			LevelForeground: Paint(level is null ? "Muted" : "TextDim"),
-			BadgeBackground: blocked ? Paint("Accent") : rank >= 0 ? Paint("Badge") : Brushes.Transparent,
+			BadgeBackground: blocked ? Paint("Accent") : rank >= 0 || undecided ? Paint("Badge") : Brushes.Transparent,
 			BadgeForeground: Paint(blocked ? "BadgeText" : "TextDim"),
 			NameBrush: Paint(active ? "Text" : "TextDim"),
 			StateBrush: Paint(active ? "Good" : "Muted"),
@@ -261,6 +268,67 @@ public partial class MainWindow : Window
 
 	// Палитра живёт в словаре окна: вторая копия в коде разъезжалась с разметкой.
 	private Brush Paint(string key) => (Brush)FindResource(key);
+
+	private void OnDeviceSelected(object sender, SelectionChangedEventArgs e) => UpdateActions();
+
+	/// <summary>
+	/// Две кнопки, которые зависят не от правил, а от самого устройства. «Сделать основным»
+	/// — то же предложение, что и в карточке над треем: она живёт четыре секунды, пропустить
+	/// её нормально, и решение должно оставаться под рукой. Связь поднимается и рвётся только
+	/// у Bluetooth: у остального за это отвечает разъём.
+	/// </summary>
+	private void UpdateActions()
+	{
+		var device = Selected();
+		var config = _switcher.Rules.For(_flow);
+
+		var unknown = device is { State: DeviceState.Active }
+			&& config.Rank(device) < 0
+			&& !config.Blocks(device)
+			&& device.Id != Audio.GetDefault(_flow, ERole.Multimedia)?.Id;
+
+		MakeMainButton.Visibility = unknown ? Visibility.Visible : Visibility.Collapsed;
+
+		// Отключённое устройство Bluetooth система помнит, но связи с ним нет: его можно
+		// поднять. Подключённое — отпустить, например на телефон.
+		var linkable = device is { Bluetooth: true, State: DeviceState.Active or DeviceState.Unplugged };
+		LinkButton.Visibility = linkable ? Visibility.Visible : Visibility.Collapsed;
+		LinkButton.Content = Localization.Get(
+			device?.State == DeviceState.Active ? "langDisconnect" : "langConnect");
+	}
+
+	private void OnMakeMain(object sender, RoutedEventArgs e)
+	{
+		if (Selected() is not { } device)
+		{
+			return;
+		}
+
+		// Сначала правило, потом переключение: иначе пересчёт, который идёт следом за сменой
+		// устройства, увёл бы звук обратно — устройства-то в приоритетах ещё нет.
+		Apply(_switcher.Rules.For(_flow).Promote(device));
+		Audio.SetDefault(device.Id);
+	}
+
+	// Команда уходит мгновенно, а связь поднимается ещё секунду-другую: список обновится
+	// сам, когда Core Audio сообщит о смене состояния.
+	private async void OnLink(object sender, RoutedEventArgs e)
+	{
+		if (Selected() is not { } device)
+		{
+			return;
+		}
+
+		LinkButton.IsEnabled = false;
+		var connect = device.State != DeviceState.Active;
+		var ok = await Task.Run(() => connect ? BluetoothAudio.Connect(device) : BluetoothAudio.Disconnect(device));
+		LinkButton.IsEnabled = true;
+
+		if (!ok)
+		{
+			_switcher.Log(connect ? "langLogConnectFailed" : "langLogDisconnectFailed", device.Name);
+		}
+	}
 
 	private void OnMakePriority(object sender, RoutedEventArgs e) => Edit((config, device) => config.Prioritise(device));
 

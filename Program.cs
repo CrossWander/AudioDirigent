@@ -194,7 +194,7 @@ internal static class Program
 	private static string[] CheckRule()
 	{
 		static AudioEndpoint Device(string id, string name, string bus) =>
-			new(id, name, DeviceState.Active, EDataFlow.Render, FormFactor.Unknown, bus, null);
+			new(id, name, DeviceState.Active, EDataFlow.Render, FormFactor.Unknown, bus, null, null);
 
 		// Гарнитура Bluetooth приходит в систему двумя устройствами с почти одинаковыми
 		// именами: музыкальным профилем и телефонным. Один и тот же приоритет ловит оба.
@@ -294,7 +294,7 @@ internal static class Program
 			foreach (var form in Enum.GetValues<FormFactor>())
 			{
 				popup.Fill(
-					new AudioEndpoint("1", "Device", DeviceState.Active, EDataFlow.Render, form, "USB", null),
+					new AudioEndpoint("1", "Device", DeviceState.Active, EDataFlow.Render, form, "USB", null, null),
 					arrived: true,
 					becameDefault: false);
 			}

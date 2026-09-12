@@ -178,4 +178,10 @@
     <sys:String x:Key="langCliPopupOk">OK: карточка подключения собирается для любого типа устройства.</sys:String>
     <sys:String x:Key="langCliPopupFail">ОШИБКА: карточка подключения не собирается — {0}</sys:String>
 
+    <sys:String x:Key="langConnect">Подключить</sys:String>
+    <sys:String x:Key="langDisconnect">Отключить</sys:String>
+    <sys:String x:Key="langBadgeUndecided">Правила пока не знают об этом устройстве: сделайте его основным или запретите</sys:String>
+    <sys:String x:Key="langLogConnectFailed">Не удалось подключить {0}.</sys:String>
+    <sys:String x:Key="langLogDisconnectFailed">Не удалось отключить {0}.</sys:String>
+
 </ResourceDictionary>

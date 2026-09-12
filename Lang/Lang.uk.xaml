@@ -178,4 +178,10 @@
     <sys:String x:Key="langCliPopupOk">OK: картка підключення збирається для будь-якого типу пристрою.</sys:String>
     <sys:String x:Key="langCliPopupFail">ПОМИЛКА: картка підключення не збирається — {0}</sys:String>
 
+    <sys:String x:Key="langConnect">Підключити</sys:String>
+    <sys:String x:Key="langDisconnect">Відключити</sys:String>
+    <sys:String x:Key="langBadgeUndecided">Правила поки не знають про цей пристрій: зробіть його основним або забороніть</sys:String>
+    <sys:String x:Key="langLogConnectFailed">Не вдалося підключити {0}.</sys:String>
+    <sys:String x:Key="langLogDisconnectFailed">Не вдалося відключити {0}.</sys:String>
+
 </ResourceDictionary>
