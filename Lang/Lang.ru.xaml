@@ -168,4 +168,14 @@
     <sys:String x:Key="langCliRestoreFail">ПРОВАЛ: не восстановилось на «{0}», осталось «{1}».</sys:String>
     <sys:String x:Key="langCliSwitchOk">OK: переключение на «{0}» и возврат на «{1}» работают.</sys:String>
 
+    <sys:String x:Key="langPopupConnected">Подключено</sys:String>
+    <sys:String x:Key="langPopupDefault">Теперь устройство по умолчанию</sys:String>
+    <sys:String x:Key="langPopupGone">Отключено</sys:String>
+    <sys:String x:Key="langPopupMakeMain">Сделать основным</sys:String>
+    <sys:String x:Key="langPopupSetting">Карточка при подключении</sys:String>
+    <sys:String x:Key="langPopupSettingHint">Показывать карточку над треем, когда устройство подключается или пропадает</sys:String>
+
+    <sys:String x:Key="langCliPopupOk">OK: карточка подключения собирается для любого типа устройства.</sys:String>
+    <sys:String x:Key="langCliPopupFail">ОШИБКА: карточка подключения не собирается — {0}</sys:String>
+
 </ResourceDictionary>

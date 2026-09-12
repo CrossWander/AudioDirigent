@@ -30,6 +30,7 @@ internal sealed class TrayIcon : IDisposable
 	private readonly ToolStripMenuItem _exitItem = new();
 	private MainWindow? _window;
 	private Hotkeys? _hotkeys;
+	private DevicePopup? _popup;
 
 	public TrayIcon(bool showWindow)
 	{
@@ -66,6 +67,8 @@ internal sealed class TrayIcon : IDisposable
 		_icon.DoubleClick += (_, _) => ShowWindow();
 
 		_switcher.Logged += ShowInTooltip;
+		_switcher.Arrived += (device, isDefault) => Announce(device, arrived: true, isDefault);
+		_switcher.Left += device => Announce(device, arrived: false, becameDefault: false);
 		_switcher.Start();
 		_switcher.Log("langLogBuild", Build.Version);
 		SetHotkeys(Store.Current.Hotkeys);
@@ -75,6 +78,20 @@ internal sealed class TrayIcon : IDisposable
 			ShowWindow();
 		}
 	}
+
+	// Карточка устройства создаётся при первом подключении и дальше живёт: показать её
+	// снова дешевле, чем строить окно заново, да и мигания при этом нет.
+	private void Announce(AudioEndpoint device, bool arrived, bool becameDefault) =>
+		Application.Current.Dispatcher.BeginInvoke(() =>
+		{
+			if (!Store.Current.Popup)
+			{
+				return;
+			}
+
+			_popup ??= new DevicePopup(_switcher);
+			_popup.Announce(device, arrived, becameDefault);
+		});
 
 	// Журнал приходит из потока таймера и из COM-колбэка, а NotifyIcon — контрол WinForms:
 	// его свойства можно трогать только с того потока, где он создан.
@@ -158,6 +175,7 @@ internal sealed class TrayIcon : IDisposable
 	{
 		Localization.Changed -= UpdateMenuText;
 		_hotkeys?.Dispose();
+		_popup?.Close();
 		_window?.Detach();
 		_icon.Visible = false;
 		_icon.Dispose();

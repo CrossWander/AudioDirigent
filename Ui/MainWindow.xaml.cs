@@ -43,6 +43,7 @@ public partial class MainWindow : Window
 		UsbPowerToggle.IsChecked = UsbPower.Enabled;
 		PauseToggle.IsChecked = switcher.Paused;
 		NotifyToggle.IsChecked = Store.Current.Notify;
+		PopupToggle.IsChecked = Store.Current.Popup;
 		HotkeyToggle.IsChecked = Store.Current.Hotkeys;
 		HotkeyHint.Text = Localization.Format("langHotkeysHint", Store.Current.PauseHotkey, Store.Current.RecoverHotkey);
 		_log.AddRange(Journal.Recent(40));
@@ -460,6 +461,12 @@ public partial class MainWindow : Window
 	private void OnNotifyChanged(object sender, RoutedEventArgs e)
 	{
 		Store.Current.Notify = NotifyToggle.IsChecked == true;
+		Store.Save();
+	}
+
+	private void OnPopupChanged(object sender, RoutedEventArgs e)
+	{
+		Store.Current.Popup = PopupToggle.IsChecked == true;
 		Store.Save();
 	}
 

@@ -168,4 +168,14 @@
     <sys:String x:Key="langCliRestoreFail">ПРОВАЛ: не відновилося на «{0}», лишилося «{1}».</sys:String>
     <sys:String x:Key="langCliSwitchOk">OK: перемикання на «{0}» і повернення на «{1}» працюють.</sys:String>
 
+    <sys:String x:Key="langPopupConnected">Підключено</sys:String>
+    <sys:String x:Key="langPopupDefault">Тепер пристрій за замовчуванням</sys:String>
+    <sys:String x:Key="langPopupGone">Відключено</sys:String>
+    <sys:String x:Key="langPopupMakeMain">Зробити основним</sys:String>
+    <sys:String x:Key="langPopupSetting">Картка при підключенні</sys:String>
+    <sys:String x:Key="langPopupSettingHint">Показувати картку над треєм, коли пристрій підключається або зникає</sys:String>
+
+    <sys:String x:Key="langCliPopupOk">OK: картка підключення збирається для будь-якого типу пристрою.</sys:String>
+    <sys:String x:Key="langCliPopupFail">ПОМИЛКА: картка підключення не збирається — {0}</sys:String>
+
 </ResourceDictionary>

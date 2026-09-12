@@ -169,4 +169,14 @@
     <sys:String x:Key="langCliRestoreFail">FAILED: did not restore “{0}”, still on “{1}”.</sys:String>
     <sys:String x:Key="langCliSwitchOk">OK: switching to “{0}” and back to “{1}” both work.</sys:String>
 
+    <sys:String x:Key="langPopupConnected">Connected</sys:String>
+    <sys:String x:Key="langPopupDefault">Now the default device</sys:String>
+    <sys:String x:Key="langPopupGone">Disconnected</sys:String>
+    <sys:String x:Key="langPopupMakeMain">Make it the main device</sys:String>
+    <sys:String x:Key="langPopupSetting">Card on connect</sys:String>
+    <sys:String x:Key="langPopupSettingHint">Show a card above the tray when a device connects or disappears</sys:String>
+
+    <sys:String x:Key="langCliPopupOk">OK: the connection card builds for every device kind.</sys:String>
+    <sys:String x:Key="langCliPopupFail">FAILED: the connection card does not build — {0}</sys:String>
+
 </ResourceDictionary>

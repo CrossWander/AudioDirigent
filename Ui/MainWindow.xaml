@@ -676,6 +676,12 @@
                             <TextBlock Text="{DynamicResource langNotifyHint}" Style="{StaticResource Caption}"
                                        FontWeight="Normal" Margin="50,4,0,0" TextWrapping="Wrap"/>
 
+                            <CheckBox x:Name="PopupToggle" Margin="0,16,0,0" Style="{StaticResource Toggle}"
+                                      Content="{DynamicResource langPopupSetting}"
+                                      Checked="OnPopupChanged" Unchecked="OnPopupChanged"/>
+                            <TextBlock Text="{DynamicResource langPopupSettingHint}" Style="{StaticResource Caption}"
+                                       FontWeight="Normal" Margin="50,4,0,0" TextWrapping="Wrap"/>
+
                             <CheckBox x:Name="HotkeyToggle" Style="{StaticResource Toggle}" Margin="0,16,0,0"
                                       Content="{DynamicResource langHotkeys}"
                                       Checked="OnHotkeysChanged" Unchecked="OnHotkeysChanged"/>

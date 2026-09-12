@@ -281,6 +281,36 @@ internal static class Program
 			&& Recovery.Parent(nodes[1], [nodes[1]]) == nodes[1];
 	}
 
+	// Карточка подключения собирается из рисунка по типу устройства, а имя рисунка — строка.
+	// Разъехавшись со словарём разметки, она молчала бы до первого подключения устройства,
+	// то есть до чужой машины. Собираем карточку для каждого типа, не показывая её.
+	private static string? CheckPopup()
+	{
+		using var switcher = new Switcher();
+		var popup = new DevicePopup(switcher);
+
+		try
+		{
+			foreach (var form in Enum.GetValues<FormFactor>())
+			{
+				popup.Fill(
+					new AudioEndpoint("1", "Device", DeviceState.Active, EDataFlow.Render, form, "USB", null),
+					arrived: true,
+					becameDefault: false);
+			}
+
+			return null;
+		}
+		catch (Exception exception)
+		{
+			return exception.Message;
+		}
+		finally
+		{
+			popup.Close();
+		}
+	}
+
 	// Настройки уходят в файл через отражение: переименованное свойство или запись без
 	// подходящего конструктора ломают чтение молча, и настройки просто «забываются».
 	private static bool CheckStore()
@@ -364,6 +394,14 @@ internal static class Program
 		}
 
 		Console.WriteLine(Localization.Get("langCliParentOk"));
+
+		if (CheckPopup() is { } popupError)
+		{
+			Console.WriteLine(Localization.Format("langCliPopupFail", popupError));
+			return 1;
+		}
+
+		Console.WriteLine(Localization.Get("langCliPopupOk"));
 
 		var active = Audio.ListDevices(EDataFlow.Render, DeviceState.Active);
 		var original = Audio.GetDefault(EDataFlow.Render, ERole.Multimedia);
