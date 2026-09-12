@@ -20,6 +20,9 @@ internal static class Store
 
 		public bool Notify { get; set; } = true;
 
+		/// <summary>Карточка подключённого устройства над треем.</summary>
+		public bool Popup { get; set; } = true;
+
 		public bool Hotkeys { get; set; }
 
 		public string PauseHotkey { get; set; } = "Ctrl+Alt+P";
@@ -36,6 +39,9 @@ internal static class Store
 		public bool UsbPower { get; set; }
 
 		public List<string> UsbPowerHeld { get; set; } = [];
+
+		/// <summary>Опрос приёмника беспроводной гарнитуры; null — не настроен, и программа его не ведёт.</summary>
+		public ProbeRule? Probe { get; set; }
 	}
 
 	private static readonly string _path = Path.Combine(AppContext.BaseDirectory, "config.json");

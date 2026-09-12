@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="HyperX Audio Guard"
+        Title="AudioDirigent"
         Icon="/app.ico"
         Width="880" Height="610" MinWidth="800" MinHeight="480"
         WindowStartupLocation="CenterScreen"
@@ -511,7 +511,7 @@
                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="HyperX Audio Guard" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="AudioDirigent" FontSize="16" FontWeight="SemiBold"/>
                         <TextBlock Text="{DynamicResource langSubtitle}" Style="{StaticResource Caption}"
                                    FontWeight="Normal" Margin="0,1,0,0"/>
                     </StackPanel>
@@ -556,8 +556,8 @@
                         <TextBlock x:Name="CurrentDevice" Text="—" FontSize="20" FontWeight="SemiBold"
                                    TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Ellipse x:Name="DongleDot" Width="8" Height="8" Fill="{StaticResource Muted}" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="DongleStatus" Text="—" Foreground="{StaticResource TextDim}"
+                            <Ellipse x:Name="ProbeDot" Width="8" Height="8" Fill="{StaticResource Muted}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="ProbeStatus" Text="—" Foreground="{StaticResource TextDim}"
                                        FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
@@ -646,18 +646,10 @@
                     <Button Style="{StaticResource Flat}" Content="{DynamicResource langMoveDown}" Margin="8,0,0,0" MinWidth="78" Click="OnMoveDown"/>
                 </StackPanel>
 
-                <!-- Обе кнопки действуют на систему, а не на выделенное устройство: отделяем их краем ряда -->
+                <!-- Кнопка действует на систему, а не на выделенное устройство: отделяем её краем ряда -->
                 <Button x:Name="RecoverButton" Style="{StaticResource Flat}" HorizontalAlignment="Right"
-                        Margin="16,0,0,0" ToolTip="{DynamicResource langRecoverHint}" Click="OnRecoverMenu">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{DynamicResource langTrayRecover}" VerticalAlignment="Center"/>
-                        <!-- Галочка вниз: у кнопки не одно действие, а список. Без NGENUITY
-                             действие остаётся одно, и галочка вместе с ним пропадает -->
-                        <Path x:Name="RecoverChevron" Data="M 0,0 L 4,4 L 8,0" StrokeThickness="1.3"
-                              Margin="9,2,0,0" VerticalAlignment="Center"
-                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                    </StackPanel>
-                </Button>
+                        Margin="16,0,0,0" Content="{DynamicResource langTrayRecover}"
+                        ToolTip="{DynamicResource langRecoverHint}" Click="OnRecover"/>
 
                 <!-- Настройки, которые ставят один раз: в ряду они только мешали бы -->
                 <Popup x:Name="SettingsMenu" PlacementTarget="{Binding ElementName=SettingsButton}"
@@ -737,18 +729,6 @@
                     </Border>
                 </Popup>
 
-                <Popup x:Name="RecoverMenu" PlacementTarget="{Binding ElementName=RecoverButton}"
-                       Placement="Custom" StaysOpen="False" AllowsTransparency="True">
-                    <Border Style="{StaticResource Panel}" Padding="8">
-                        <StackPanel>
-                            <Button Style="{StaticResource Flat}" Content="{DynamicResource langRecoverDrivers}"
-                                    Click="OnRecoverDrivers"/>
-                            <Button x:Name="RecoverNgenuityItem" Style="{StaticResource Flat}"
-                                    Content="{DynamicResource langRecoverNgenuity}"
-                                    Margin="0,6,0,0" Click="OnRecoverNgenuity"/>
-                        </StackPanel>
-                    </Border>
-                </Popup>
             </Grid>
 
             <!-- Журнал -->

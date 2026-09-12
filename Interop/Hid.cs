@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,82 +10,92 @@ using Microsoft.Win32.SafeHandles;
 namespace AudioDirigent;
 
 /// <summary>
-/// Опрос донгла HyperX по HID. Нужен потому, что донгл виден системе как активное
-/// аудиоустройство даже когда гарнитура выключена — состояние Core Audio об этом молчит.
-/// Протокол разобран в проекте platorp/HyperX-Cloud-III-3-S-Audio-Switcher.
+/// Опрос приёмника беспроводной гарнитуры по HID. Нужен потому, что приёмник виден системе
+/// как активное аудиоустройство даже когда гарнитура выключена, а средствами Windows это
+/// не выясняется никак: драйвер строит описание разъёма из дескрипторов, и состояние
+/// радиоканала туда не попадает. Протокол у каждого производителя свой, поэтому программа
+/// его не знает — байты описаны в config.json. Пример рабочего протокола лежит в README.
 /// </summary>
-internal sealed partial class HeadsetProbe : IDisposable
+internal sealed partial class DeviceProbe : IDisposable
 {
-	// HyperX выпускается под двумя VID: 0x03F0 — HP, 0x0951 — Kingston (модели до 2021).
-	private static readonly ushort[] _hyperXVendorIds = [0x03F0, 0x0951];
-
-	private const ushort _controlUsagePage = 0x1C0;
-	private const byte _statusReportId = 0x0C;
-	private static readonly byte[] _statusRequest = [_statusReportId, 0x02, 0x03, 0x01, 0x00, 0x02];
-
-	// В ответе шестой байт: 2 — гарнитура включена и в эфире, 0 — выключена.
-	private const int _statusByteIndex = 6;
-	private const byte _statusOn = 2;
-
 	private readonly FileStream _stream;
+	private readonly ProbeRule _rule;
+	private readonly byte[] _request;
+	private readonly byte _on;
 	private readonly int _inputLength;
 	private readonly int _outputLength;
 
 	public ushort ProductId { get; }
 
-	private HeadsetProbe(FileStream stream, ushort productId, int inputLength, int outputLength)
+	private DeviceProbe(FileStream stream, ProbeRule rule, byte[] request, byte on, HidDeviceInfo device)
 	{
 		_stream = stream;
-		_inputLength = inputLength;
-		_outputLength = outputLength;
-		ProductId = productId;
+		_rule = rule;
+		_request = request;
+		_on = on;
+		_inputLength = device.InputLength;
+		_outputLength = device.OutputLength;
+		ProductId = device.ProductId;
 	}
 
-	/// <summary>Устройство HyperX: HP либо Kingston.</summary>
-	public static bool IsHyperX(ushort vendorId) => _hyperXVendorIds.Contains(vendorId);
-
-	/// <summary>Находит управляющий HID-интерфейс донгла HyperX; null — донгла нет.</summary>
-	public static HeadsetProbe? Open()
+	/// <summary>Открыть приёмник, описанный в config.json; null — он не описан или не найден.</summary>
+	public static DeviceProbe? Open()
 	{
-		// У проводных моделей коллекция с этой usage page тоже есть, но с нулевыми длинами
-		// отчётов: слать и читать нечего. Без этой проверки опрос ушёл бы в пустоту.
-		var candidates = Enumerate().Where(d =>
-			IsHyperX(d.VendorId)
-			&& d.UsagePage == _controlUsagePage
-			&& d.InputLength > _statusByteIndex
-			&& d.OutputLength >= _statusRequest.Length);
+		if (Store.Current.Probe is not { } rule
+			|| Bytes(rule.Request) is not { Length: > 0 } request
+			|| Byte(rule.UsagePage, out var usagePageHigh) is not { } usagePage
+			|| Byte(rule.OnValue) is not { } on)
+		{
+			return null;
+		}
+
+		var vendors = rule.Vendors.Select(value => Word(value)).OfType<ushort>().ToList();
+		var page = (ushort)((usagePageHigh << 8) | usagePage);
+
+		// У проводных моделей коллекция с той же usage page тоже бывает, но с нулевыми
+		// длинами отчётов: слать и читать нечего. Без проверки опрос ушёл бы в пустоту.
+		var candidates = Enumerate().Where(device =>
+			(vendors.Count == 0 || vendors.Contains(device.VendorId))
+			&& device.UsagePage == page
+			&& device.InputLength > rule.StatusByte
+			&& device.OutputLength >= request.Length);
 
 		foreach (var device in candidates)
 		{
 			if (OpenStream(device.Path) is { } stream)
 			{
-				return new HeadsetProbe(stream, device.ProductId, device.InputLength, device.OutputLength);
+				return new DeviceProbe(stream, rule, request, on, device);
 			}
 		}
 
 		return null;
 	}
 
-	/// <summary>true — гарнитура включена, false — выключена, null — донгл не ответил.</summary>
-	public bool? IsHeadsetOn()
+	/// <summary>true — гарнитура включена, false — выключена, null — приёмник не ответил.</summary>
+	public bool? IsOn()
 	{
 		var response = Query();
-		return response is not null && response.Length > _statusByteIndex
-			? response[_statusByteIndex] == _statusOn
+
+		return response is not null && response.Length > _rule.StatusByte
+			? response[_rule.StatusByte] == _on
 			: null;
 	}
 
-	/// <summary>Сырой ответ донгла на запрос статуса; null — не ответил. Нужен режиму --hid.</summary>
+	/// <summary>Устройство принадлежит гарнитуре, за которой следит приёмник.</summary>
+	public bool Covers(AudioEndpoint device) =>
+		_rule.Covers.Length > 0 && Config.Matches(device, _rule.Covers);
+
+	/// <summary>Сырой ответ приёмника на запрос состояния; null — не ответил. Нужен режиму --devices.</summary>
 	public byte[]? Query()
 	{
 		try
 		{
-			var request = new byte[Math.Max(_outputLength, _statusRequest.Length)];
-			_statusRequest.CopyTo(request, 0);
+			var request = new byte[Math.Max(_outputLength, _request.Length)];
+			_request.CopyTo(request, 0);
 			_stream.Write(request, 0, request.Length);
 			_stream.Flush();
 
-			var response = new byte[Math.Max(_inputLength, _statusByteIndex + 1)];
+			var response = new byte[Math.Max(_inputLength, _rule.StatusByte + 1)];
 			using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 			var read = _stream.ReadAsync(response, timeout.Token).AsTask().GetAwaiter().GetResult();
 
@@ -98,9 +109,51 @@ internal sealed partial class HeadsetProbe : IDisposable
 
 	public void Dispose() => _stream.Dispose();
 
+	/// <summary>Последовательность байт «0C 02 03»; null — в строке не только шестнадцатеричные числа.</summary>
+	private static byte[]? Bytes(string value)
+	{
+		var parts = value.Split([' ', ',', '-'], StringSplitOptions.RemoveEmptyEntries);
+		var result = new byte[parts.Length];
+		for (var i = 0; i < parts.Length; i++)
+		{
+			if (Byte(parts[i]) is not { } parsed)
+			{
+				return null;
+			}
+
+			result[i] = parsed;
+		}
+
+		return result;
+	}
+
+	private static byte? Byte(string value) =>
+		byte.TryParse(Trim(value), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+
+	/// <summary>Младший байт значения; старший уходит в <paramref name="high"/>. Для usage page вида 01C0.</summary>
+	private static byte? Byte(string value, out byte high)
+	{
+		high = 0;
+		if (Word(value) is not { } parsed)
+		{
+			return null;
+		}
+
+		high = (byte)(parsed >> 8);
+
+		return (byte)(parsed & 0xFF);
+	}
+
+	private static ushort? Word(string value) =>
+		ushort.TryParse(Trim(value), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+
+	// Число пишут и как 0x1C0, и как 1C0 — обе записи об одном и том же.
+	private static string Trim(string value) =>
+		value.Trim().TrimStart('0', 'x', 'X') is { Length: > 0 } trimmed ? trimmed : "0";
+
 	internal sealed record HidDeviceInfo(string Path, ushort VendorId, ushort ProductId, ushort UsagePage, ushort Usage, int InputLength, int OutputLength);
 
-	/// <summary>Все HID-интерфейсы в системе — используется режимом --hid для разбора протокола.</summary>
+	/// <summary>Все HID-интерфейсы в системе — используется режимом --devices для разбора протокола.</summary>
 	internal static IEnumerable<HidDeviceInfo> Enumerate()
 	{
 		HidD_GetHidGuid(out var hidGuid);

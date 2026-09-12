@@ -27,8 +27,6 @@ internal sealed class TrayIcon : IDisposable
 	private readonly ToolStripMenuItem _openItem = new();
 	private readonly ToolStripMenuItem _pauseItem = new();
 	private readonly ToolStripMenuItem _recoverItem = new();
-	private readonly ToolStripMenuItem _recoverDriversItem = new();
-	private readonly ToolStripMenuItem _recoverNgenuityItem = new();
 	private readonly ToolStripMenuItem _exitItem = new();
 	private MainWindow? _window;
 	private Hotkeys? _hotkeys;
@@ -46,19 +44,8 @@ internal sealed class TrayIcon : IDisposable
 		_openItem.Font = new Font(menu.Font, FontStyle.Bold);
 		_openItem.Click += (_, _) => ShowWindow();
 		_pauseItem.Click += (_, _) => TogglePause();
-		_recoverDriversItem.Click += (_, _) => Recover(withNgenuity: false);
-		_recoverNgenuityItem.Click += (_, _) => Recover(withNgenuity: true);
-		_recoverItem.DropDownItems.Add(_recoverDriversItem);
-		_recoverItem.DropDownItems.Add(_recoverNgenuityItem);
-
-		// Подменю создаётся своё и об оформлении родителя не знает — красим отдельно.
-		_recoverItem.DropDown.Renderer = menu.Renderer;
-		_recoverItem.DropDown.BackColor = menu.BackColor;
-		_recoverItem.DropDown.ForeColor = menu.ForeColor;
+		_recoverItem.Click += (_, _) => Recover();
 		_exitItem.Click += (_, _) => Application.Current.Shutdown();
-
-		// NGENUITY могли поставить или снять уже после запуска, поэтому смотрим при открытии меню.
-		menu.Opening += (_, _) => _recoverNgenuityItem.Visible = Recovery.NgenuityRunning;
 
 		menu.Items.Add(_openItem);
 		menu.Items.Add(_pauseItem);
@@ -72,7 +59,7 @@ internal sealed class TrayIcon : IDisposable
 		_icon = new NotifyIcon
 		{
 			Icon = _iconActive,
-			Text = "HyperX Audio Guard",
+			Text = "AudioDirigent",
 			Visible = true,
 			ContextMenuStrip = menu,
 		};
@@ -93,13 +80,13 @@ internal sealed class TrayIcon : IDisposable
 	// его свойства можно трогать только с того потока, где он создан.
 	private void ShowInTooltip(LogEntry entry) => Application.Current.Dispatcher.BeginInvoke(() =>
 	{
-		var text = $"HyperX Audio Guard — {entry.Render()}";
+		var text = $"AudioDirigent — {entry.Render()}";
 		_icon.Text = text.Length <= 63 ? text : text[..63];
 
 		if (Store.Current.Notify && _switchKeys.Contains(entry.Key)
-			&& !Balloon.Show(_icon, "HyperX Audio Guard", entry.Text))
+			&& !Balloon.Show(_icon, "AudioDirigent", entry.Text))
 		{
-			_icon.ShowBalloonTip(4000, "HyperX Audio Guard", entry.Text, ToolTipIcon.None);
+			_icon.ShowBalloonTip(4000, "AudioDirigent", entry.Text, ToolTipIcon.None);
 		}
 	});
 
@@ -110,7 +97,7 @@ internal sealed class TrayIcon : IDisposable
 		_hotkeys = enabled
 			? new Hotkeys(_switcher.Log,
 				(Store.Current.PauseHotkey, TogglePause),
-				(Store.Current.RecoverHotkey, () => Recover(withNgenuity: false)))
+				(Store.Current.RecoverHotkey, Recover))
 			: null;
 	}
 
@@ -119,14 +106,12 @@ internal sealed class TrayIcon : IDisposable
 		_openItem.Text = Localization.Get("langTrayOpen");
 		_pauseItem.Text = Localization.Get(_switcher.Paused ? "langTrayResume" : "langTrayPause");
 		_recoverItem.Text = Localization.Get("langTrayRecover");
-		_recoverDriversItem.Text = Localization.Get("langRecoverDrivers");
-		_recoverNgenuityItem.Text = Localization.Get("langRecoverNgenuity");
 		_exitItem.Text = Localization.Get("langTrayExit");
 	}
 
 	// Восстановление переустанавливает устройства и может перезапустить службу звука —
 	// на потоке интерфейса это заморозило бы и меню, и трей на несколько секунд.
-	private void Recover(bool withNgenuity)
+	private void Recover()
 	{
 		_recoverItem.Enabled = false;
 
@@ -134,7 +119,7 @@ internal sealed class TrayIcon : IDisposable
 		// у обработчика WinForms не гарантирован, а зависшее меню трея не починить ничем.
 		Task.Run(() =>
 		{
-			_switcher.Recover(withNgenuity);
+			_switcher.Recover();
 			Application.Current.Dispatcher.BeginInvoke(() => _recoverItem.Enabled = true);
 		});
 	}

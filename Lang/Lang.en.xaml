@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-    <sys:String x:Key="langSubtitle">Keeps audio output on a device that actually works</sys:String>
+    <sys:String x:Key="langSubtitle">Keeps audio on the device you actually meant</sys:String>
     <sys:String x:Key="langDefaultDevice">DEFAULT DEVICE</sys:String>
     <sys:String x:Key="langOutput">OUTPUT</sys:String>
     <sys:String x:Key="langInput">INPUT</sys:String>
@@ -37,21 +37,18 @@
     <sys:String x:Key="langStateNotPresent">not present</sys:String>
     <sys:String x:Key="langStateUnplugged">unplugged</sys:String>
 
-    <sys:String x:Key="langDongleNotFound">No HyperX dongle found — the headset is tracked through Windows events</sys:String>
-    <sys:String x:Key="langDongleOn">HyperX dongle: headset is on</sys:String>
-    <sys:String x:Key="langDongleOff">HyperX dongle: headset is off</sys:String>
-    <sys:String x:Key="langDongleSilent">HyperX dongle found but not answering the status query</sys:String>
+    <sys:String x:Key="langProbeNotFound">Probe: not configured</sys:String>
+    <sys:String x:Key="langProbeOn">Probe: the headset is on</sys:String>
+    <sys:String x:Key="langProbeOff">Probe: the headset is off</sys:String>
+    <sys:String x:Key="langProbeSilent">Probe: no answer</sys:String>
 
     <sys:String x:Key="langTrayOpen">Open</sys:String>
     <sys:String x:Key="langTrayPause">Pause</sys:String>
     <sys:String x:Key="langTrayResume">Resume</sys:String>
-    <sys:String x:Key="langRecoverHint">Bring a vanished headset back: reinstall the HyperX devices and, if that is not enough, restart the audio service. Needs administrator rights.</sys:String>
-    <sys:String x:Key="langRecoverDrivers">Restart the audio drivers</sys:String>
-    <sys:String x:Key="langRecoverNgenuity">Restart NGENUITY and the drivers</sys:String>
+    <sys:String x:Key="langRecoverHint">Bring back devices that vanished from the system: reinstall them and, if that is not enough, restart the audio service. Needs administrator rights.</sys:String>
     <sys:String x:Key="langTrayRecover">Restore sound</sys:String>
     <sys:String x:Key="langTrayExit">Exit</sys:String>
 
-    <sys:String x:Key="langLogStart">Started.</sys:String>
     <sys:String x:Key="langLogBuild">Started. Version {0}.</sys:String>
     <sys:String x:Key="langLogPaused">Paused.</sys:String>
     <sys:String x:Key="langLogResumed">Resumed.</sys:String>
@@ -59,25 +56,23 @@
     <sys:String x:Key="langLogSwitchedFromNone">Switched to “{0}”</sys:String>
     <sys:String x:Key="langLogSwitchedIn">Microphone switched: “{0}” → “{1}”</sys:String>
     <sys:String x:Key="langLogSwitchedInFromNone">Microphone switched to “{0}”</sys:String>
-    <sys:String x:Key="langLogDongleFound">HyperX dongle found (PID {0}), polling every {1} s.</sys:String>
-    <sys:String x:Key="langLogDongleOn">Dongle: headset is on.</sys:String>
-    <sys:String x:Key="langLogDongleOff">Dongle: headset is off.</sys:String>
-    <sys:String x:Key="langLogDongleSilent">Dongle is not answering.</sys:String>
+    <sys:String x:Key="langLogProbeFound">Probe found (PID {0}), polling every {1} s.</sys:String>
+    <sys:String x:Key="langLogProbeOn">Probe: the headset is on.</sys:String>
+    <sys:String x:Key="langLogProbeOff">Probe: the headset is off.</sys:String>
+    <sys:String x:Key="langLogProbeSilent">The probe stopped answering.</sys:String>
+    <sys:String x:Key="langLogAdopted">{0} was plugged in — playing there now.</sys:String>
+    <sys:String x:Key="langLogAdoptedIn">{0} was plugged in — recording from it now.</sys:String>
     <sys:String x:Key="langLogAutostartOn">Logon task “{0}” created.</sys:String>
     <sys:String x:Key="langLogAutostartOff">Logon task “{0}” removed.</sys:String>
     <sys:String x:Key="langLogSuspend">Going to sleep.</sys:String>
     <sys:String x:Key="langLogResume">Woke up — rechecking the devices.</sys:String>
-    <sys:String x:Key="langLogHeadsetLost">The headset did not come back after sleep.</sys:String>
-    <sys:String x:Key="langLogNgenuityStopped">NGENUITY killed — the driver is free.</sys:String>
-    <sys:String x:Key="langLogNgenuityStarted">NGENUITY started again and sent to the tray.</sys:String>
-    <sys:String x:Key="langLogNgenuityWindow">NGENUITY started again, but its window never showed up — could not send it to the tray.</sys:String>
+    <sys:String x:Key="langLogDeviceLost">{0} device(s) did not come back after sleep.</sys:String>
     <sys:String x:Key="langLogRecoveryDevices">Reinstalling devices: {0}</sys:String>
     <sys:String x:Key="langLogRecoveryService">Reinstalling did not help — restarting the audio service.</sys:String>
     <sys:String x:Key="langLogRecoveryOk">The headset is back.</sys:String>
     <sys:String x:Key="langLogRecoveryFailed">Recovery failed — only a reboot will help.</sys:String>
     <sys:String x:Key="langLogRecoveryDenied">Recovery needs administrator rights: run the program as administrator and turn autostart on again.</sys:String>
     <sys:String x:Key="langLogFatal">CRASH: {0}</sys:String>
-    <sys:String x:Key="langLogMigrated">Settings moved out of the text files into config.json.</sys:String>
     <sys:String x:Key="langUsbPower">Keep the ports awake</sys:String>
     <sys:String x:Key="langUsbPowerHint">Stop Windows from powering down the USB ports</sys:String>
     <sys:String x:Key="langSettings">Settings</sys:String>
@@ -121,21 +116,20 @@
   --once                apply the rule once and exit
   --list                list the output devices and the current default
   --test                self-check: switching really works
-  --hid                 HyperX HID interfaces and the dongle status reply
-  --recover [ngenuity]  bring a vanished headset back: reinstall the HyperX
-                        devices and, if needed, restart the audio service;
-                        ngenuity kills and restarts NGENUITY around it
+  --devices             HID interfaces and the probe's answer, if one is set up
+  --recover             bring vanished devices back: reinstall them and, if
+                        needed, restart the audio service
   --autostart [on|off]  autostart task state, create it, remove it</sys:String>
 
     <sys:String x:Key="langCliTaskPresent">Task “{0}” is in Task Scheduler, starts: "{1}" --tray</sys:String>
     <sys:String x:Key="langCliTaskAbsent">Task “{0}” is not in Task Scheduler.</sys:String>
 
-    <sys:String x:Key="langCliNoHid">No HyperX HID interfaces found (VID 03F0 / 0951). Is the headset connected?</sys:String>
+    <sys:String x:Key="langCliNoHid">No HID interfaces found at all.</sys:String>
     <sys:String x:Key="langCliHidHeader">VID  PID  UsagePage Usage In Out  Path</sys:String>
-    <sys:String x:Key="langCliNoControlInterface">No control interface (usage page 01C0) — the model is wired, or the dongle does not expose one. Switching will run on Windows events.</sys:String>
-    <sys:String x:Key="langCliDongleReply">Dongle reply: {0}</sys:String>
+    <sys:String x:Key="langCliNoProbe">No probe in config.json, or the device it describes is not here.</sys:String>
+    <sys:String x:Key="langCliProbeReply">Probe reply: {0}</sys:String>
     <sys:String x:Key="langCliNoReply">(no reply)</sys:String>
-    <sys:String x:Key="langCliHeadsetOn">Headset on: {0}</sys:String>
+    <sys:String x:Key="langCliProbeOn">Headset on: {0}</sys:String>
     <sys:String x:Key="langCliUnknown">unknown</sys:String>
 
     <sys:String x:Key="langCliDefaultMarker">&lt;-- default</sys:String>
@@ -143,12 +137,16 @@
     <sys:String x:Key="langCliLanguageFail">FAILED, language dictionaries: {0}</sys:String>
     <sys:String x:Key="langCliLanguageMissing">Lang.{0}.xaml has no {1}</sys:String>
 
-    <sys:String x:Key="langRuleHeadsetFirst">the headset outranks the speakers</sys:String>
-    <sys:String x:Key="langRuleSpeakersWhenOff">the speakers win while the headset is off</sys:String>
+    <sys:String x:Key="langRulePriorityOrder">the earlier priority wins</sys:String>
+    <sys:String x:Key="langRuleMusicOverPhone">the music profile wins over the phone one</sys:String>
     <sys:String x:Key="langRuleBlockedNever">a blocked device is never selected</sys:String>
+    <sys:String x:Key="langRulePhysicalOverVirtual">a real device wins over a virtual one</sys:String>
+    <sys:String x:Key="langRuleVirtualStillWins">a virtual device still beats a lower priority</sys:String>
+    <sys:String x:Key="langRulePromoteFirst">making a device the main one puts it first</sys:String>
+    <sys:String x:Key="langRulePromoteReplaces">making a device the main one drops the pattern that caught it</sys:String>
     <sys:String x:Key="langRulePatternSurvivesPriority">the generic pattern survives prioritising</sys:String>
     <sys:String x:Key="langRuleUnlistedToPriority">an unlisted device is added to the priorities</sys:String>
-    <sys:String x:Key="langRuleBlockKeepsPriority">blocking a virtual device keeps the headset priority</sys:String>
+    <sys:String x:Key="langRuleBlockKeepsPriority">blocking one device keeps the others' priority</sys:String>
     <sys:String x:Key="langRulePatternSurvivesBlock">the generic pattern survives blocking</sys:String>
     <sys:String x:Key="langRuleUnlistedToBlocked">an unlisted device is added to the blocks</sys:String>
     <sys:String x:Key="langCliJournalOk">OK: a journal entry survives the round trip through the file.</sys:String>

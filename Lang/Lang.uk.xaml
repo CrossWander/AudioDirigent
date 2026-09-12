@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-    <sys:String x:Key="langSubtitle">Тримає вивід звуку на пристрої, який справді працює</sys:String>
+    <sys:String x:Key="langSubtitle">Тримає звук на тому пристрої, який ви й мали на увазі</sys:String>
     <sys:String x:Key="langDefaultDevice">ПРИСТРІЙ ЗА ЗАМОВЧУВАННЯМ</sys:String>
     <sys:String x:Key="langOutput">ВИВІД</sys:String>
     <sys:String x:Key="langInput">ЗАПИС</sys:String>
@@ -36,21 +36,18 @@
     <sys:String x:Key="langStateNotPresent">немає в системі</sys:String>
     <sys:String x:Key="langStateUnplugged">не під'єднано</sys:String>
 
-    <sys:String x:Key="langDongleNotFound">Донгл HyperX не знайдено — гарнітура відстежується за подіями Windows</sys:String>
-    <sys:String x:Key="langDongleOn">Донгл HyperX: гарнітуру ввімкнено</sys:String>
-    <sys:String x:Key="langDongleOff">Донгл HyperX: гарнітуру вимкнено</sys:String>
-    <sys:String x:Key="langDongleSilent">Донгл HyperX знайдено, але він не відповідає на запит стану</sys:String>
+    <sys:String x:Key="langProbeNotFound">Приймач: не налаштований</sys:String>
+    <sys:String x:Key="langProbeOn">Приймач: гарнітуру ввімкнено</sys:String>
+    <sys:String x:Key="langProbeOff">Приймач: гарнітуру вимкнено</sys:String>
+    <sys:String x:Key="langProbeSilent">Приймач: не відповідає</sys:String>
 
     <sys:String x:Key="langTrayOpen">Відкрити</sys:String>
     <sys:String x:Key="langTrayPause">Призупинити</sys:String>
     <sys:String x:Key="langTrayResume">Відновити</sys:String>
-    <sys:String x:Key="langRecoverHint">Повернути зниклу гарнітуру: перевстановити пристрої HyperX і, якщо не допоможе, перезапустити службу звуку. Потрібні права адміністратора.</sys:String>
-    <sys:String x:Key="langRecoverDrivers">Перезапустити драйвери звуку</sys:String>
-    <sys:String x:Key="langRecoverNgenuity">Перезапустити NGENUITY і драйвери</sys:String>
+    <sys:String x:Key="langRecoverHint">Повернути пристрої, що зникли з системи: перевстановити їх і, якщо не допоможе, перезапустити службу звуку. Потрібні права адміністратора.</sys:String>
     <sys:String x:Key="langTrayRecover">Відновити звук</sys:String>
     <sys:String x:Key="langTrayExit">Вихід</sys:String>
 
-    <sys:String x:Key="langLogStart">Запуск.</sys:String>
     <sys:String x:Key="langLogBuild">Запуск. Версія {0}.</sys:String>
     <sys:String x:Key="langLogPaused">Призупинено.</sys:String>
     <sys:String x:Key="langLogResumed">Відновлено.</sys:String>
@@ -58,25 +55,23 @@
     <sys:String x:Key="langLogSwitchedFromNone">Перемкнено на «{0}»</sys:String>
     <sys:String x:Key="langLogSwitchedIn">Мікрофон перемкнено: «{0}» → «{1}»</sys:String>
     <sys:String x:Key="langLogSwitchedInFromNone">Мікрофон перемкнено на «{0}»</sys:String>
-    <sys:String x:Key="langLogDongleFound">Знайдено донгл HyperX (PID {0}), опитування кожні {1} с.</sys:String>
-    <sys:String x:Key="langLogDongleOn">Донгл: гарнітуру ввімкнено.</sys:String>
-    <sys:String x:Key="langLogDongleOff">Донгл: гарнітуру вимкнено.</sys:String>
-    <sys:String x:Key="langLogDongleSilent">Донгл не відповідає.</sys:String>
+    <sys:String x:Key="langLogProbeFound">Приймач знайдено (PID {0}), опитування кожні {1} с.</sys:String>
+    <sys:String x:Key="langLogProbeOn">Приймач: гарнітуру ввімкнено.</sys:String>
+    <sys:String x:Key="langLogProbeOff">Приймач: гарнітуру вимкнено.</sys:String>
+    <sys:String x:Key="langLogProbeSilent">Приймач перестав відповідати.</sys:String>
+    <sys:String x:Key="langLogAdopted">Підключено {0} — звук іде туди.</sys:String>
+    <sys:String x:Key="langLogAdoptedIn">Підключено {0} — запис іде з нього.</sys:String>
     <sys:String x:Key="langLogAutostartOn">Створено завдання автозапуску «{0}».</sys:String>
     <sys:String x:Key="langLogAutostartOff">Завдання автозапуску «{0}» видалено.</sys:String>
     <sys:String x:Key="langLogSuspend">Перехід у сон.</sys:String>
     <sys:String x:Key="langLogResume">Пробудження — перевіряю пристрої.</sys:String>
-    <sys:String x:Key="langLogHeadsetLost">Гарнітура не повернулася після сну.</sys:String>
-    <sys:String x:Key="langLogNgenuityStopped">NGENUITY знято — драйвер звільнено.</sys:String>
-    <sys:String x:Key="langLogNgenuityStarted">NGENUITY запущено знову та згорнуто в трей.</sys:String>
-    <sys:String x:Key="langLogNgenuityWindow">NGENUITY запущено знову, але вікно так і не з'явилося — згорнути його не вдалося.</sys:String>
+    <sys:String x:Key="langLogDeviceLost">Після сну не повернулося пристроїв: {0}.</sys:String>
     <sys:String x:Key="langLogRecoveryDevices">Перевстановлюю пристрої: {0}</sys:String>
     <sys:String x:Key="langLogRecoveryService">Перевстановлення не допомогло — перезапускаю службу звуку.</sys:String>
     <sys:String x:Key="langLogRecoveryOk">Гарнітура повернулася.</sys:String>
     <sys:String x:Key="langLogRecoveryFailed">Відновити не вдалося — допоможе лише перезавантаження.</sys:String>
     <sys:String x:Key="langLogRecoveryDenied">Для відновлення потрібні права адміністратора: запустіть програму від імені адміністратора й увімкніть автозапуск заново.</sys:String>
     <sys:String x:Key="langLogFatal">ЗБІЙ: {0}</sys:String>
-    <sys:String x:Key="langLogMigrated">Налаштування перенесено з текстових файлів у config.json.</sys:String>
     <sys:String x:Key="langUsbPower">Тримати порти живими</sys:String>
     <sys:String x:Key="langUsbPowerHint">Заборонити Windows вимикати живлення портів USB</sys:String>
     <sys:String x:Key="langSettings">Налаштування</sys:String>
@@ -120,21 +115,20 @@
   --once                застосувати правило один раз і вийти
   --list                показати пристрої виводу та поточний за замовчуванням
   --test                самоперевірка: перемикання справді працює
-  --hid                 HID-інтерфейси HyperX і відповідь донгла на запит стану
-  --recover [ngenuity]  повернути зниклу гарнітуру: перевстановити пристрої
-                        HyperX і, якщо треба, перезапустити службу звуку;
-                        ngenuity заодно знімає й піднімає NGENUITY
+  --devices             HID-інтерфейси та відповідь приймача, якщо він налаштований
+  --recover             повернути зниклі пристрої: перевстановити їх і,
+                        якщо треба, перезапустити службу звуку
   --autostart [on|off]  стан завдання автозапуску, увімкнення, вимкнення</sys:String>
 
     <sys:String x:Key="langCliTaskPresent">Завдання «{0}» є в планувальнику, запускає: "{1}" --tray</sys:String>
     <sys:String x:Key="langCliTaskAbsent">Завдання «{0}» у планувальнику немає.</sys:String>
 
-    <sys:String x:Key="langCliNoHid">HID-інтерфейсів HyperX не знайдено (VID 03F0 / 0951). Гарнітуру підключено?</sys:String>
+    <sys:String x:Key="langCliNoHid">HID-інтерфейсів не знайдено взагалі.</sys:String>
     <sys:String x:Key="langCliHidHeader">VID  PID  UsagePage Usage In Out  Шлях</sys:String>
-    <sys:String x:Key="langCliNoControlInterface">Керуючого інтерфейсу (usage page 01C0) немає — модель дротова або донгл його не виставляє. Перемикання працюватиме за подіями Windows.</sys:String>
-    <sys:String x:Key="langCliDongleReply">Відповідь донгла: {0}</sys:String>
+    <sys:String x:Key="langCliNoProbe">Приймач не описано в config.json або описаного пристрою тут немає.</sys:String>
+    <sys:String x:Key="langCliProbeReply">Відповідь приймача: {0}</sys:String>
     <sys:String x:Key="langCliNoReply">(немає відповіді)</sys:String>
-    <sys:String x:Key="langCliHeadsetOn">Гарнітуру ввімкнено: {0}</sys:String>
+    <sys:String x:Key="langCliProbeOn">Гарнітуру ввімкнено: {0}</sys:String>
     <sys:String x:Key="langCliUnknown">невідомо</sys:String>
 
     <sys:String x:Key="langCliDefaultMarker">&lt;-- за замовчуванням</sys:String>
@@ -142,12 +136,16 @@
     <sys:String x:Key="langCliLanguageFail">ПРОВАЛ, словники мов: {0}</sys:String>
     <sys:String x:Key="langCliLanguageMissing">у Lang.{0}.xaml немає {1}</sys:String>
 
-    <sys:String x:Key="langRuleHeadsetFirst">гарнітура важливіша за динаміки</sys:String>
-    <sys:String x:Key="langRuleSpeakersWhenOff">за вимкненої гарнітури перемагають динаміки</sys:String>
+    <sys:String x:Key="langRulePriorityOrder">перемагає пріоритет, що вище в списку</sys:String>
+    <sys:String x:Key="langRuleMusicOverPhone">музичний профіль перемагає телефонний</sys:String>
     <sys:String x:Key="langRuleBlockedNever">заборонений пристрій не обирається ніколи</sys:String>
+    <sys:String x:Key="langRulePhysicalOverVirtual">справжній пристрій перемагає віртуальний</sys:String>
+    <sys:String x:Key="langRuleVirtualStillWins">віртуальний усе ж обходить пристрій нижчого пріоритету</sys:String>
+    <sys:String x:Key="langRulePromoteFirst">«зробити основним» ставить пристрій першим</sys:String>
+    <sys:String x:Key="langRulePromoteReplaces">«зробити основним» знімає патерн, що ловив пристрій</sys:String>
     <sys:String x:Key="langRulePatternSurvivesPriority">загальний патерн переживає додавання в пріоритет</sys:String>
     <sys:String x:Key="langRuleUnlistedToPriority">пристрій поза правилами потрапляє в пріоритети</sys:String>
-    <sys:String x:Key="langRuleBlockKeepsPriority">заборона віртуального пристрою зберігає пріоритет гарнітури</sys:String>
+    <sys:String x:Key="langRuleBlockKeepsPriority">заборона одного пристрою зберігає пріоритет інших</sys:String>
     <sys:String x:Key="langRulePatternSurvivesBlock">загальний патерн переживає заборону</sys:String>
     <sys:String x:Key="langRuleUnlistedToBlocked">пристрій поза правилами потрапляє в заборони</sys:String>
     <sys:String x:Key="langCliJournalOk">OK: запис журналу читається з файлу без втрат.</sys:String>

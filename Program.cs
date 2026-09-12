@@ -35,8 +35,8 @@ internal static class Program
 			"--list" => ListMode,
 			"--once" => OnceMode,
 			"--test" => SelfCheck,
-			"--hid" => HidMode,
-			"--recover" => () => RecoverMode(args.Skip(1).FirstOrDefault()),
+			"--devices" => DevicesMode,
+			"--recover" => RecoverMode,
 			"--autostart" => () => AutostartMode(args.Skip(1).FirstOrDefault()),
 			"--help" or "-h" or "/?" => Usage,
 			_ => null,
@@ -104,13 +104,12 @@ internal static class Program
 		return 0;
 	}
 
-	// Разбор протокола донгла: у беспроводных моделей состояние гарнитуры видно только отсюда.
-	private static int HidMode()
+	// Все HID-интерфейсы системы: с этого начинается разбор протокола приёмника, из
+	// которого потом складывается блок probe в config.json. Состояние беспроводной
+	// гарнитуры больше взять неоткуда — Windows о нём не знает.
+	private static int DevicesMode()
 	{
-		var devices = HeadsetProbe.Enumerate()
-			.Where(d => HeadsetProbe.IsHyperX(d.VendorId))
-			.ToList();
-
+		var devices = DeviceProbe.Enumerate().ToList();
 		if (devices.Count == 0)
 		{
 			Console.WriteLine(Localization.Get("langCliNoHid"));
@@ -124,33 +123,35 @@ internal static class Program
 				$"{device.InputLength,2} {device.OutputLength,3}  {device.Path}");
 		}
 
-		using var probe = HeadsetProbe.Open();
+		using var probe = DeviceProbe.Open();
 		if (probe is null)
 		{
-			Console.WriteLine(Environment.NewLine + Localization.Get("langCliNoControlInterface"));
+			Console.WriteLine(Environment.NewLine + Localization.Get("langCliNoProbe"));
 			return 0;
 		}
 
 		var response = probe.Query();
-		Console.WriteLine(Environment.NewLine + Localization.Format("langCliDongleReply",
+		Console.WriteLine(Environment.NewLine + Localization.Format("langCliProbeReply",
 			response is null ? Localization.Get("langCliNoReply") : Convert.ToHexString(response)));
-		Console.WriteLine(Localization.Format("langCliHeadsetOn",
-			probe.IsHeadsetOn()?.ToString() ?? Localization.Get("langCliUnknown")));
+		Console.WriteLine(Localization.Format("langCliProbeOn",
+			probe.IsOn()?.ToString() ?? Localization.Get("langCliUnknown")));
 
 		return 0;
 	}
 
 	// Ручной вызов того же восстановления, что идёт после пробуждения: удобно, когда
 	// звук уже отвалился, а программа в трее работает без прав администратора.
-	private static int RecoverMode(string? scope)
+	private static int RecoverMode()
 	{
-		var settings = Settings.Load();
-		bool Present() => settings.HeadsetPresent();
+		using var switcher = new Switcher();
+		switcher.Logged += entry => Console.WriteLine(entry.Render());
 
-		Recovery.Run((key, arguments) => Console.WriteLine(Localization.Format(key, arguments)), Present,
-			withNgenuity: scope == "ngenuity");
+		// Знакомимся с устройствами и сразу спрашиваем, чего не хватает: в отдельном
+		// запуске программа ещё не видела, что было живо до того, как звук пропал.
+		switcher.Start();
+		switcher.Recover();
 
-		return Present() ? 0 : 1;
+		return switcher.Missing().Count == 0 ? 0 : 1;
 	}
 
 	private static int ListMode()
@@ -160,10 +161,13 @@ internal static class Program
 			var current = Audio.GetDefault(flow, ERole.Multimedia);
 			Console.WriteLine(Localization.Get(flow == EDataFlow.Capture ? "langInput" : "langOutput"));
 
+			// Шина и тип печатаются рядом с именем: по ним программа отличает воткнутое от
+			// подключившегося само и музыкальный профиль от телефонного, так что при разборе
+			// странного выбора смотреть надо именно на них.
 			foreach (var device in Audio.ListDevices(flow))
 			{
 				var marker = device.Id == current?.Id ? $"  {Localization.Get("langCliDefaultMarker")}" : "";
-				Console.WriteLine($"{device.State,-12} {device.Name}{marker}");
+				Console.WriteLine($"{device.State,-12} {device.Bus,-10} {device.Form,-11} {device.Name}{marker}");
 			}
 
 			Console.WriteLine();
@@ -177,33 +181,44 @@ internal static class Program
 		using var switcher = new Switcher();
 		switcher.Logged += entry => Console.WriteLine(entry.Render());
 
-		// Именно Start, а не Apply: без опроса донгла правило не знает, выключена ли
+		// Именно Start, а не Apply: без опроса приёмника правило не знает, выключена ли
 		// беспроводная гарнитура, и режим отработал бы иначе, чем программа в трее.
 		switcher.Start();
 		return 0;
 	}
 
-	// Правило выбора на живых устройствах не проверить: нужны и включённая, и выключенная
-	// гарнитура одновременно. Считаем его на выдуманных — ошибка в приоритетах тихая.
+	// Правило выбора на живых устройствах не проверить: понадобилась бы гарнитура Bluetooth,
+	// подключённая сразу двумя профилями, и виртуальный драйвер вдобавок. Считаем его на
+	// выдуманных — ошибка в приоритетах тихая и обнаруживается уже пропавшим звуком.
 	// Имена устройств здесь — данные, а не текст для чтения: по ним ищутся паттерны.
 	private static string[] CheckRule()
 	{
-		var headset = new AudioEndpoint("1", "Headphones (HyperX Cloud III)", DeviceState.Active);
-		var speakers = new AudioEndpoint("2", "Speakers (Realtek(R) Audio)", DeviceState.Active);
-		var driver = new AudioEndpoint("3", "NGENUITY - Chat (HyperX Virtual Audio Device)", DeviceState.Active);
-		var unknown = new AudioEndpoint("4", "Bluetooth speaker", DeviceState.Active);
-		AudioEndpoint[] all = [driver, speakers, headset];
-		var config = new Config(["HyperX", "Realtek"], ["NGENUITY"]);
+		static AudioEndpoint Device(string id, string name, string bus) =>
+			new(id, name, DeviceState.Active, EDataFlow.Render, FormFactor.Unknown, bus, null);
+
+		// Гарнитура Bluetooth приходит в систему двумя устройствами с почти одинаковыми
+		// именами: музыкальным профилем и телефонным. Один и тот же приоритет ловит оба.
+		var music = Device("1", "Wireless Headset Stereo", "BTHENUM");
+		var phone = Device("2", "Wireless Headset Hands-Free AG", "BTHHFENUM");
+		var mixer = Device("3", "Wireless Headset (Virtual Cable)", "SWD");
+		var speakers = Device("4", "Speakers (Realtek(R) Audio)", "HDAUDIO");
+		var blocked = Device("5", "Speakers (Monitor via HDMI)", "HDAUDIO");
+		var unknown = Device("6", "USB Microphone", "USB");
+		var config = new Config(["Wireless Headset", "Realtek"], ["HDMI"]);
 
 		(bool Ok, string Rule)[] checks =
 		[
-			(config.SelectBest(all, headsetOff: false) == headset, "langRuleHeadsetFirst"),
-			(config.SelectBest(all, headsetOff: true) == speakers, "langRuleSpeakersWhenOff"),
-			(config.SelectBest([driver], headsetOff: false) is null, "langRuleBlockedNever"),
-			(config.Prioritise(headset).Priority.SequenceEqual(config.Priority), "langRulePatternSurvivesPriority"),
+			(config.SelectBest([speakers, music]) == music, "langRulePriorityOrder"),
+			(config.SelectBest([phone, music, speakers]) == music, "langRuleMusicOverPhone"),
+			(config.SelectBest([mixer, music]) == music, "langRulePhysicalOverVirtual"),
+			(config.SelectBest([mixer, speakers]) == mixer, "langRuleVirtualStillWins"),
+			(config.SelectBest([blocked]) is null, "langRuleBlockedNever"),
+			(config.Promote(speakers).Rank(speakers) == 0, "langRulePromoteFirst"),
+			(config.Promote(music).Priority.Count == config.Priority.Count, "langRulePromoteReplaces"),
+			(config.Prioritise(music).Priority.SequenceEqual(config.Priority), "langRulePatternSurvivesPriority"),
 			(config.Prioritise(unknown).Priority.Contains(unknown.Name), "langRuleUnlistedToPriority"),
-			(config.Block(driver).Rank(headset) == 0, "langRuleBlockKeepsPriority"),
-			(config.Block(driver).Blocked.SequenceEqual(config.Blocked), "langRulePatternSurvivesBlock"),
+			(config.Block(blocked).Rank(music) == 0, "langRuleBlockKeepsPriority"),
+			(config.Block(blocked).Blocked.SequenceEqual(config.Blocked), "langRulePatternSurvivesBlock"),
 			(config.Block(unknown).Blocked.Contains(unknown.Name), "langRuleUnlistedToBlocked"),
 		];
 
@@ -249,9 +264,9 @@ internal static class Program
 		return ready;
 	}
 
-	// По имени в pnputil видно только звуковой интерфейс гарнитуры, а NGENUITY ищет её через
-	// HID-интерфейс того же устройства. Перезапускать надо их общего родителя, иначе звук
-	// вернётся, а NGENUITY будет писать, что гарнитуры нет.
+	// Звук гарнитуры сидит на одном интерфейсе составного устройства, а её управляющий HID —
+	// на соседнем. Перезапускать надо их общего родителя, иначе звук вернётся, а приложение
+	// производителя будет писать, что гарнитуры нет.
 	private static bool CheckParent()
 	{
 		List<string> nodes =

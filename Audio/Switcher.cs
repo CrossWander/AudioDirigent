@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -6,13 +7,17 @@ using Microsoft.Win32;
 
 namespace AudioDirigent;
 
-/// <summary>Правило выбора устройства вывода: события Core Audio плюс опрос донгла, если он есть.</summary>
+/// <summary>
+/// Правило выбора устройства: события Core Audio плюс, если он настроен, опрос приёмника
+/// по HID. Одним и тем же событием ловится и воткнутый провод, и подключённая гарнитура
+/// Bluetooth — Windows заводит и то, и другое как появление эндпоинта.
+/// </summary>
 internal sealed class Switcher : IDisposable
 {
-	private static readonly TimeSpan _donglePollInterval = TimeSpan.FromSeconds(3);
+	private static readonly TimeSpan _probeInterval = TimeSpan.FromSeconds(3);
 
 	// USB-устройства возвращаются не сразу и вразнобой: даём системе досчитать их сама,
-	// и только если гарнитура так и не появилась, лезем восстанавливать её руками.
+	// и только если устройство так и не появилось, лезем восстанавливать его руками.
 	private static readonly TimeSpan _resumeSettle = TimeSpan.FromSeconds(5);
 	private static readonly TimeSpan _resumeRetry = TimeSpan.FromSeconds(10);
 	private const int _resumeAttempts = 4;
@@ -20,19 +25,25 @@ internal sealed class Switcher : IDisposable
 	// Правило считается и из потока таймера, и из COM-колбэка, и из окна.
 	private readonly Lock _gate = new();
 	private readonly Timer _debounce;
-	private readonly Timer _donglePoll;
+	private readonly Timer _probePoll;
 	private readonly Timer _resume;
+
+	// Узлы PnP устройств, которые были живы в этом запуске: починке нужно знать, что
+	// именно пропало, а Windows держит в списке и то, что унесли месяц назад.
+	private readonly HashSet<string> _known = new(StringComparer.OrdinalIgnoreCase);
+
 	private Settings _settings = Settings.Load();
+	private Dictionary<string, AudioEndpoint>? _seen;
 	private IDisposable? _subscription;
-	private HeadsetProbe? _probe;
-	private bool _headsetBeforeSleep;
+	private DeviceProbe? _probe;
+	private List<string> _beforeSleep = [];
 	private int _resumeAttempt;
 	private int _recovering;
 
 	public Switcher()
 	{
 		_debounce = new Timer(_ => Safe(Reapply), null, Timeout.Infinite, Timeout.Infinite);
-		_donglePoll = new Timer(_ => Poll(), null, Timeout.Infinite, Timeout.Infinite);
+		_probePoll = new Timer(_ => Poll(), null, Timeout.Infinite, Timeout.Infinite);
 		_resume = new Timer(_ => Safe(Resume), null, Timeout.Infinite, Timeout.Infinite);
 
 		SystemEvents.PowerModeChanged += OnPowerModeChanged;
@@ -44,13 +55,19 @@ internal sealed class Switcher : IDisposable
 	/// <summary>Состав или состояние устройств изменились — окну пора перерисоваться.</summary>
 	public event Action? DevicesChanged;
 
+	/// <summary>Устройство появилось; второй аргумент — оно же стало устройством по умолчанию.</summary>
+	public event Action<AudioEndpoint, bool>? Arrived;
+
+	/// <summary>Устройство пропало.</summary>
+	public event Action<AudioEndpoint>? Left;
+
 	public bool Paused { get; set; }
 
-	/// <summary>Донгл найден и опрашивается по HID.</summary>
-	public bool HasDongle => _probe is not null;
+	/// <summary>Приёмник найден и опрашивается по HID.</summary>
+	public bool HasProbe => _probe is not null;
 
-	/// <summary>Состояние гарнитуры по данным донгла: null — донгла нет либо он не ответил.</summary>
-	public bool? HeadsetOn { get; private set; }
+	/// <summary>Что говорит приёмник об устройстве: null — приёмника нет либо он не ответил.</summary>
+	public bool? DeviceOn { get; private set; }
 
 	/// <summary>Текущие правила: файл читается при загрузке и при сохранении, а не на каждый запрос.</summary>
 	public Settings Rules
@@ -86,11 +103,29 @@ internal sealed class Switcher : IDisposable
 	/// <summary>Пересчитать правило и, если нужно, сменить устройство по умолчанию.</summary>
 	public void Apply()
 	{
+		List<AudioEndpoint> arrived = [];
+		List<AudioEndpoint> left = [];
+
 		lock (_gate)
 		{
+			var now = Live().ToDictionary(device => device.Id);
+
+			// Первый проход — не появление устройств, а знакомство с ними: иначе при
+			// запуске программа объявляла бы о каждом устройстве в системе.
+			if (_seen is { } before)
+			{
+				arrived = [.. now.Values.Where(device => !before.ContainsKey(device.Id))];
+				left = [.. before.Values.Where(device => !now.ContainsKey(device.Id))];
+			}
+
+			_seen = now;
+			_known.UnionWith(now.Values.Select(device => device.Node).OfType<string>());
+
 			if (!Paused)
 			{
-				// Направления считаются одним правилом: гарнитура приносит с собой и
+				Adopt(arrived);
+
+				// Направления считаются одним правилом: устройство приносит с собой и
 				// наушники, и микрофон, а моно-канал Bluetooth портит именно их пару.
 				SwitchIfNeeded(EDataFlow.Render, _settings.Output);
 				SwitchIfNeeded(EDataFlow.Capture, _settings.Input);
@@ -99,6 +134,7 @@ internal sealed class Switcher : IDisposable
 
 		// Окно обновляется и на паузе: устройства всё равно появляются и исчезают.
 		DevicesChanged?.Invoke();
+		Announce(arrived, left);
 	}
 
 	public void Log(string key, params object?[] arguments) => Logged?.Invoke(Journal.Add(key, arguments));
@@ -107,17 +143,60 @@ internal sealed class Switcher : IDisposable
 	{
 		SystemEvents.PowerModeChanged -= OnPowerModeChanged;
 		_debounce.Dispose();
-		_donglePoll.Dispose();
+		_probePoll.Dispose();
 		_resume.Dispose();
 		_subscription?.Dispose();
 		_probe?.Dispose();
 	}
 
-	/// <summary>Вернуть пропавшую гарнитуру в систему и пересчитать правило. Занимает секунды.</summary>
-	public void Recover(bool withNgenuity)
+	/// <summary>Вернуть в систему устройства, которые из неё пропали. Занимает секунды.</summary>
+	public void Recover() => Recover(Missing());
+
+	/// <summary>
+	/// Узлы PnP устройств, которых система недосчиталась: тех, что были живы в этом запуске,
+	/// и тех, чьи конечные точки Windows помнит, а самих устройств уже нет. Второе нужно,
+	/// когда починку зовут из свежего запуска: звук отвалился до того, как программа успела
+	/// на что-то посмотреть. Узлы, которых нет и в PnP, отсеет сама починка — их не перезапустить.
+	/// </summary>
+	public List<string> Missing()
+	{
+		var live = LiveNodes();
+		var gone = Audio.ListDevices(EDataFlow.Render, DeviceState.NotPresent)
+			.Concat(Audio.ListDevices(EDataFlow.Capture, DeviceState.NotPresent))
+			.Select(device => device.Node)
+			.OfType<string>()
+			.ToList();
+
+		lock (_gate)
+		{
+			gone.AddRange(_known);
+		}
+
+		return [.. gone.Where(node => !live.Contains(node)).Distinct(StringComparer.OrdinalIgnoreCase)];
+	}
+
+	/// <summary>Устройство скрыто приёмником: он сообщает, что железо сейчас выключено.</summary>
+	public bool Hidden(AudioEndpoint device) => _probe is { } probe && DeviceOn == false && probe.Covers(device);
+
+	private static IEnumerable<AudioEndpoint> Live() =>
+		Audio.ListDevices(EDataFlow.Render, DeviceState.Active)
+			.Concat(Audio.ListDevices(EDataFlow.Capture, DeviceState.Active));
+
+	private static HashSet<string> LiveNodes() =>
+		Live().Select(device => device.Node).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>Все перечисленные узлы вернулись в систему.</summary>
+	private static bool Restored(IReadOnlyCollection<string> nodes)
+	{
+		var live = LiveNodes();
+
+		return nodes.All(live.Contains);
+	}
+
+	private void Recover(List<string> nodes)
 	{
 		// Починку запускают и из окна, и из меню трея, а блокируют они каждый свою кнопку.
-		// Вторая попытка поверх первой перезапускала бы службу звука и NGENUITY дважды.
+		// Вторая попытка поверх первой перезапускала бы службу звука дважды.
 		if (Interlocked.Exchange(ref _recovering, 1) == 1)
 		{
 			return;
@@ -125,7 +204,7 @@ internal sealed class Switcher : IDisposable
 
 		Safe(() =>
 		{
-			Recovery.Run(Log, HeadsetPresent, withNgenuity);
+			Recovery.Run(Log, nodes, Restored);
 			Resubscribe();
 			Apply();
 		});
@@ -133,13 +212,31 @@ internal sealed class Switcher : IDisposable
 		Interlocked.Exchange(ref _recovering, 0);
 	}
 
-	/// <summary>Гарнитура на месте целиком — и наушники, и микрофон.</summary>
-	public bool HeadsetPresent() => Rules.HeadsetPresent();
+	/// <summary>
+	/// Устройство, которое воткнули рукой, звучит сразу. Правила при этом не трогаются:
+	/// для программы это то же самое, что выбор устройства вручную, а его она уважает и
+	/// не перебивает. Устройство, уже описанное правилами, обходим — там решает правило.
+	/// </summary>
+	private void Adopt(List<AudioEndpoint> arrived)
+	{
+		foreach (var device in arrived.Where(device => device is { Plugged: true, HandsFree: false, Software: false }))
+		{
+			var config = _settings.For(device.Flow);
+			if (config.Rank(device) >= 0 || config.Blocks(device) || Hidden(device))
+			{
+				continue;
+			}
+
+			Audio.SetDefault(device.Id);
+			Log(device.Flow == EDataFlow.Capture ? "langLogAdoptedIn" : "langLogAdopted", device.Name);
+			Volume.Apply(device, Log);
+		}
+	}
 
 	private void SwitchIfNeeded(EDataFlow flow, Config config)
 	{
-		var headsetOff = _probe is not null && HeadsetOn == false;
-		if (config.SelectBest(Audio.ListDevices(flow, DeviceState.Active), headsetOff) is not { } best)
+		var active = Audio.ListDevices(flow, DeviceState.Active).Where(device => !Hidden(device)).ToList();
+		if (config.SelectBest(active) is not { } best)
 		{
 			return;
 		}
@@ -153,7 +250,10 @@ internal sealed class Switcher : IDisposable
 		// Вмешиваемся только если текущее устройство непригодно, отсутствует или стоит
 		// ниже по приоритету. Ручной выбор постороннего устройства уважаем.
 		var currentRank = current is null ? -1 : config.Rank(current);
-		if (current is not null && !config.Unusable(current, headsetOff) && (currentRank < 0 || currentRank <= config.Rank(best)))
+		if (current is not null
+			&& !config.Blocks(current)
+			&& !Hidden(current)
+			&& (currentRank < 0 || currentRank <= config.Rank(best)))
 		{
 			return;
 		}
@@ -173,6 +273,31 @@ internal sealed class Switcher : IDisposable
 
 		Volume.Apply(best, Log);
 	}
+
+	/// <summary>Сообщить окну о том, что подключилось и что пропало, — по одному событию на устройство.</summary>
+	private void Announce(List<AudioEndpoint> arrived, List<AudioEndpoint> left)
+	{
+		if (Pick(arrived) is { } came)
+		{
+			var current = Audio.GetDefault(came.Flow, ERole.Multimedia);
+			Arrived?.Invoke(came, current?.Id == came.Id);
+		}
+
+		if (Pick(left) is { } gone)
+		{
+			Left?.Invoke(gone);
+		}
+	}
+
+	/// <summary>
+	/// Гарнитура приходит в систему сразу несколькими устройствами — наушниками, микрофоном,
+	/// телефонным профилем. Человеку это одно событие, поэтому берём то из них, что слышно.
+	/// </summary>
+	private static AudioEndpoint? Pick(List<AudioEndpoint> devices) =>
+		devices
+			.OrderBy(device => device.Flow == EDataFlow.Render ? 0 : 1)
+			.ThenBy(device => device.HandsFree ? 1 : 0)
+			.FirstOrDefault();
 
 	// Windows шлёт события пачками: подключение одного устройства — это несколько
 	// уведомлений подряд, и без задержки правило считалось бы на каждое.
@@ -194,21 +319,21 @@ internal sealed class Switcher : IDisposable
 
 	private void Reapply()
 	{
-		// Донгл могли воткнуть уже после запуска — программу поднимает автозапуск.
+		// Приёмник могли воткнуть уже после запуска — программу поднимает автозапуск.
 		// Его появление это тоже событие Core Audio, так что ищем здесь, а не по таймеру.
 		EnsureProbe();
 		Apply();
 	}
 
-	// Гарнитура не переживает гибернацию: система усыпляет USB-порт, а обратно устройство
-	// возвращается не всегда. Событий Core Audio при этом может не быть вовсе, поэтому
+	// Устройства не переживают гибернацию: система усыпляет USB-порт, а обратно они
+	// возвращаются не всегда. Событий Core Audio при этом может не быть вовсе, поэтому
 	// после пробуждения пересчитываем правило сами.
 	private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
 	{
 		if (e.Mode == PowerModes.Suspend)
 		{
-			// Чинить нечего, если гарнитуры не было и до сна — её просто не подключали.
-			_headsetBeforeSleep = HeadsetPresent();
+			// Чинить нечего, если устройства не было и до сна: его просто не подключали.
+			_beforeSleep = [.. Live().Select(device => device.Node).OfType<string>().Distinct()];
 			Log("langLogSuspend");
 			return;
 		}
@@ -220,7 +345,7 @@ internal sealed class Switcher : IDisposable
 
 		Log("langLogResume");
 
-		// Дескриптор донгла сон не переживает: устройство переоткроется заново.
+		// Дескриптор приёмника сон не переживает: устройство переоткроется заново.
 		DropProbe();
 
 		_resumeAttempt = 0;
@@ -231,7 +356,9 @@ internal sealed class Switcher : IDisposable
 	{
 		Reapply();
 
-		if (!_headsetBeforeSleep || HeadsetPresent())
+		var live = LiveNodes();
+		var missing = _beforeSleep.Where(node => !live.Contains(node)).ToList();
+		if (missing.Count == 0)
 		{
 			return;
 		}
@@ -242,12 +369,11 @@ internal sealed class Switcher : IDisposable
 			return;
 		}
 
-		Log("langLogHeadsetLost");
+		Log("langLogDeviceLost", missing.Count);
 
-		// Сюда доходят только после того, как гарнитура не вернулась сама, — случай,
-		// в котором раньше спасала лишь перезагрузка. Чиним по полной; если NGENUITY
-		// не запущен, этот шаг сам собой превратится в обычную переустановку.
-		Recover(withNgenuity: true);
+		// Сюда доходят только после того, как устройство не вернулось само, — случай,
+		// в котором раньше спасала лишь перезагрузка.
+		Recover(missing);
 	}
 
 	// Перезапуск службы звука обрывает подписку: уведомитель зарегистрирован в её
@@ -269,13 +395,13 @@ internal sealed class Switcher : IDisposable
 
 	private void Poll()
 	{
-		Safe(PollDongle);
+		Safe(PollProbe);
 
 		try
 		{
 			// Таймер одноразовый и перезаводится отсюда: периодический успел бы уйти
-			// вторым опросом в тот же поток донгла, пока первый ещё ждёт ответа.
-			_donglePoll.Change(_donglePollInterval, Timeout.InfiniteTimeSpan);
+			// вторым опросом в тот же поток устройства, пока первый ещё ждёт ответа.
+			_probePoll.Change(_probeInterval, Timeout.InfiniteTimeSpan);
 		}
 		catch (ObjectDisposedException)
 		{
@@ -283,18 +409,19 @@ internal sealed class Switcher : IDisposable
 		}
 	}
 
-	// Донгл беспроводных моделей остаётся активным аудиоустройством и с выключенной
-	// гарнитурой — состояние Core Audio об этом молчит, спрашиваем донгл напрямую.
+	// Приёмник беспроводной гарнитуры остаётся активным аудиоустройством и с выключенной
+	// гарнитурой — состояние Core Audio об этом молчит, спрашиваем приёмник напрямую.
+	// Средствами Windows это не выясняется никак, поэтому опрос и существует.
 	private void EnsureProbe()
 	{
-		if (_probe is not null || HeadsetProbe.Open() is not { } probe)
+		if (_probe is not null || DeviceProbe.Open() is not { } probe)
 		{
 			return;
 		}
 
 		lock (_gate)
 		{
-			// Пока шло перечисление HID, донгл мог открыть другой поток.
+			// Пока шло перечисление HID, устройство мог открыть другой поток.
 			if (_probe is not null)
 			{
 				probe.Dispose();
@@ -304,44 +431,44 @@ internal sealed class Switcher : IDisposable
 			_probe = probe;
 		}
 
-		Log("langLogDongleFound", $"{probe.ProductId:X4}", _donglePollInterval.TotalSeconds);
-		_donglePoll.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+		Log("langLogProbeFound", $"{probe.ProductId:X4}", _probeInterval.TotalSeconds);
+		_probePoll.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 	}
 
 	private void DropProbe()
 	{
-		HeadsetProbe? probe;
+		DeviceProbe? probe;
 		lock (_gate)
 		{
 			(probe, _probe) = (_probe, null);
 		}
 
-		HeadsetOn = null;
+		DeviceOn = null;
 		probe?.Dispose();
 	}
 
-	private void PollDongle()
+	private void PollProbe()
 	{
 		if (_probe is not { } probe)
 		{
 			return;
 		}
 
-		var state = probe.IsHeadsetOn();
-		if (state == HeadsetOn)
+		var state = probe.IsOn();
+		if (state == DeviceOn)
 		{
 			return;
 		}
 
-		HeadsetOn = state;
+		DeviceOn = state;
 		Log(state switch
 		{
-			true => "langLogDongleOn",
-			false => "langLogDongleOff",
-			null => "langLogDongleSilent",
+			true => "langLogProbeOn",
+			false => "langLogProbeOff",
+			null => "langLogProbeSilent",
 		});
 
-		// Молчит — скорее всего донгл вынули, и этот дескриптор уже не оживёт.
+		// Молчит — скорее всего приёмник вынули, и этот дескриптор уже не оживёт.
 		// Закрываем; новый откроется на ближайшем событии Core Audio.
 		if (state is null)
 		{

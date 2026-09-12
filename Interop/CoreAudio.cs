@@ -74,11 +74,40 @@ internal struct PropertyKey
 		PropertyId = propertyId;
 	}
 
-	// PKEY_Device_FriendlyName — «Наушники (HyperX Cloud III)»
+	// PKEY_Device_FriendlyName — «Наушники (Cloud III)»
 	public static PropertyKey FriendlyName => new(new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), 14);
+
+	// PKEY_AudioEndpoint_FormFactor — чем устройство является: динамики, наушники, микрофон, HDMI.
+	public static PropertyKey FormFactor => new(new Guid("1da5d803-d492-4edd-8c23-e0c0ffee7f0e"), 0);
+
+	// PKEY_Device_EnumeratorName — по какой шине устройство пришло: USB, BTHENUM, HDAUDIO, SWD.
+	// Windows сама ранжирует устройства по умолчанию с оглядкой на это же свойство.
+	public static PropertyKey Bus => new(new Guid("a45c254e-df1c-4efd-8020-67d146a850e0"), 24);
+
+	// Путь PnP того устройства, за которым стоит эндпоинт: «{1}.USB\VID_03F0&PID_089D&MI_00\…».
+	// Недокументирован, но живёт с Vista и лежит в реестре рядом с остальными свойствами
+	// эндпоинта. Документированный PKEY_Device_InstanceId не подходит: он описывает сам
+	// эндпоинт (SWD\MMDEVAPI\…), а на Windows 10 попросту пуст.
+	public static PropertyKey Node => new(new Guid("b3f8fa53-0004-438e-9003-51a46e139bfc"), 2);
 }
 
-// Урезанный PROPVARIANT: нам нужен только VT_LPWSTR. Буфер намеренно больше настоящих
+/// <summary>Чем устройство является по мнению Windows. Значения — те, что отдаёт Core Audio.</summary>
+internal enum FormFactor
+{
+	RemoteNetwork,
+	Speakers,
+	LineLevel,
+	Headphones,
+	Microphone,
+	Headset,
+	Handset,
+	DigitalPassthrough,
+	Spdif,
+	Hdmi,
+	Unknown,
+}
+
+// Урезанный PROPVARIANT: нужны только строки и числа. Буфер намеренно больше настоящих
 // 24 байт (x64), чтобы COM гарантированно писал внутрь нашего стека.
 [StructLayout(LayoutKind.Sequential)]
 internal struct PropVariant
@@ -91,9 +120,13 @@ internal struct PropVariant
 	private readonly IntPtr _tail1;
 	private readonly IntPtr _tail2;
 
+	private const ushort VT_UI4 = 19;
 	private const ushort VT_LPWSTR = 31;
 
 	public string? AsString() => VarType == VT_LPWSTR ? Marshal.PtrToStringUni(Pointer) : null;
+
+	/// <summary>Число лежит в первых четырёх байтах того же поля, что и указатель.</summary>
+	public uint? AsNumber() => VarType == VT_UI4 ? (uint)(Pointer.ToInt64() & 0xFFFFFFFF) : null;
 }
 
 // Недокументированный, но стабильный с Windows 7: единственный способ сменить устройство по умолчанию.
@@ -140,7 +173,34 @@ internal interface IMMNotificationClient
 	void OnPropertyValueChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, PropertyKey key);
 }
 
-internal sealed record AudioEndpoint(string Id, string Name, DeviceState State);
+/// <param name="Node">Путь PnP устройства за эндпоинтом; null — Windows его не отдала.</param>
+internal sealed record AudioEndpoint(
+	string Id,
+	string Name,
+	DeviceState State,
+	EDataFlow Flow,
+	FormFactor Form,
+	string Bus,
+	string? Node)
+{
+	/// <summary>Устройство подключено по Bluetooth — хоть музыкой, хоть телефонным профилем.</summary>
+	public bool Bluetooth => Bus.StartsWith("BTH", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Телефонный профиль гарнитуры Bluetooth: моно, 16 кГц, голос. Windows заводит его
+	/// отдельной шиной, поэтому признак не зависит ни от имени устройства, ни от языка системы.
+	/// </summary>
+	public bool HandsFree => Bus.Equals("BTHHFENUM", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>Устройство существует только в виде драйвера: виртуальные кабели, микшеры, стримингс.</summary>
+	public bool Software => Bus.Equals("SWD", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Устройство появилось потому, что его воткнули рукой, — USB, разъём, HDMI. В отличие
+	/// от Bluetooth, который соединяется сам, это уже поступок, и он означает намерение.
+	/// </summary>
+	public bool Plugged => !Bluetooth && !Software;
+}
 
 internal static class Audio
 {
@@ -150,21 +210,59 @@ internal static class Audio
 	private static IMMDeviceEnumerator CreateEnumerator() =>
 		(IMMDeviceEnumerator)new MMDeviceEnumeratorComObject();
 
-	/// <summary>Имя устройства; null — Windows его не отдаёт.</summary>
-	private static string? Describe(IMMDevice device)
+	/// <summary>Устройство со всем, что о нём знает Windows; null — у него нет даже имени.</summary>
+	private static AudioEndpoint? Describe(IMMDevice device, EDataFlow flow)
 	{
-		// У части эндпоинтов (обычно отключённых) имени нет вовсе — GetValue отдаёт ERROR_NOT_FOUND.
-		PropVariant value = default;
+		IPropertyStore store;
 		try
 		{
-			var store = device.OpenPropertyStore(0 /* STGM_READ */);
-			var key = PropertyKey.FriendlyName;
-			value = store.GetValue(ref key);
-			return value.AsString();
+			store = device.OpenPropertyStore(0 /* STGM_READ */);
 		}
 		catch (COMException)
 		{
 			return null;
+		}
+
+		// У части эндпоинтов (обычно отключённых) имени нет вовсе — GetValue отдаёт ERROR_NOT_FOUND.
+		if (Text(store, PropertyKey.FriendlyName) is not { } name)
+		{
+			return null;
+		}
+
+		var form = Number(store, PropertyKey.FormFactor) is { } value && value <= (uint)FormFactor.Unknown
+			? (FormFactor)value
+			: FormFactor.Unknown;
+
+		// Путь приходит с префиксом «{1}.», который к самому устройству отношения не имеет.
+		var node = Text(store, PropertyKey.Node) is { } path && path.IndexOf('.') is var dot and >= 0
+			? path[(dot + 1)..]
+			: null;
+
+		return new AudioEndpoint(
+			device.GetId(),
+			name,
+			device.GetState(),
+			flow,
+			form,
+			Text(store, PropertyKey.Bus) ?? string.Empty,
+			node);
+	}
+
+	private static string? Text(IPropertyStore store, PropertyKey key) => Read(store, key, value => value.AsString());
+
+	private static uint? Number(IPropertyStore store, PropertyKey key) => Read(store, key, value => value.AsNumber());
+
+	private static T? Read<T>(IPropertyStore store, PropertyKey key, Func<PropVariant, T?> convert)
+	{
+		PropVariant value = default;
+		try
+		{
+			value = store.GetValue(ref key);
+			return convert(value);
+		}
+		catch (COMException)
+		{
+			return default;
 		}
 		finally
 		{
@@ -183,9 +281,9 @@ internal static class Audio
 
 			// Безымянные эндпоинты — следы удалённых устройств: правило по имени их
 			// всё равно не поймает, а список они забивают.
-			if (Describe(device) is { } name)
+			if (Describe(device, flow) is { } endpoint)
 			{
-				result.Add(new AudioEndpoint(device.GetId(), name, device.GetState()));
+				result.Add(endpoint);
 			}
 		}
 
@@ -197,7 +295,18 @@ internal static class Audio
 		try
 		{
 			var device = CreateEnumerator().GetDefaultAudioEndpoint(flow, role);
-			return new AudioEndpoint(device.GetId(), Describe(device) ?? Localization.Get("langNoName"), device.GetState());
+
+			// Имя есть всегда: устройством по умолчанию безымянный эндпоинт не бывает.
+			// Но если Windows его не отдала, устройство от этого не перестало играть.
+			return Describe(device, flow)
+				?? new AudioEndpoint(
+					device.GetId(),
+					Localization.Get("langNoName"),
+					device.GetState(),
+					flow,
+					FormFactor.Unknown,
+					string.Empty,
+					null);
 		}
 		catch (COMException)
 		{

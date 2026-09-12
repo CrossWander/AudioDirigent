@@ -49,7 +49,6 @@ public partial class MainWindow : Window
 		RenderLog();
 		SelectLanguageButton();
 
-		RecoverMenu.CustomPopupPlacementCallback = PlaceOver;
 		SettingsMenu.CustomPopupPlacementCallback = PlaceUnder;
 
 		_switcher.Logged += OnLogged;
@@ -174,14 +173,14 @@ public partial class MainWindow : Window
 		CurrentDevice.Text = current?.Name ?? Localization.Get("langNone");
 		DeviceCount.Text = Localization.Format("langActiveOf", devices.Count(d => d.State == DeviceState.Active), devices.Count);
 
-		(DongleStatus.Text, var dongleColour) = (_switcher.HasDongle, _switcher.HeadsetOn) switch
+		(ProbeStatus.Text, var probeColour) = (_switcher.HasProbe, _switcher.DeviceOn) switch
 		{
-			(false, _) => (Localization.Get("langDongleNotFound"), "Muted"),
-			(true, true) => (Localization.Get("langDongleOn"), "Good"),
-			(true, false) => (Localization.Get("langDongleOff"), "Accent"),
-			(true, null) => (Localization.Get("langDongleSilent"), "Muted"),
+			(false, _) => (Localization.Get("langProbeNotFound"), "Muted"),
+			(true, true) => (Localization.Get("langProbeOn"), "Good"),
+			(true, false) => (Localization.Get("langProbeOff"), "Accent"),
+			(true, null) => (Localization.Get("langProbeSilent"), "Muted"),
 		};
-		DongleDot.Fill = Paint(dongleColour);
+		ProbeDot.Fill = Paint(probeColour);
 
 		var selectedId = Selected()?.Id;
 
@@ -198,11 +197,6 @@ public partial class MainWindow : Window
 		}
 
 		UpdateStateBadge();
-
-		// NGENUITY появляется и исчезает вместе со своими виртуальными устройствами, так что
-		// список обновился — значит, самое время пересчитать и его пункт починки.
-		RecoverNgenuityItem.Visibility = Recovery.NgenuityRunning ? Visibility.Visible : Visibility.Collapsed;
-		RecoverChevron.Visibility = RecoverNgenuityItem.Visibility;
 	}
 
 	private DeviceRow Row(AudioEndpoint device, Config config, AudioEndpoint? current)
@@ -271,8 +265,8 @@ public partial class MainWindow : Window
 
 	private void OnMakeBlocked(object sender, RoutedEventArgs e) => Edit((config, device) => config.Block(device));
 
-	// Правило — это подстрока имени, а не устройство: «Сбросить» на строке NGENUITY снимает
-	// и общий паттерн HyperX, которым живёт сама гарнитура. Молча такое делать нельзя.
+	// Правило — это подстрока имени, а не устройство: «Сбросить» на одной строке может снять
+	// общий паттерн, которым живут и соседние устройства. Молча такое делать нельзя.
 	private void OnClearRule(object sender, RoutedEventArgs e)
 	{
 		if (Selected() is not { } device)
@@ -381,40 +375,19 @@ public partial class MainWindow : Window
 		}
 	}
 
-	// Список из одного пункта — лишний клик: без NGENUITY кнопка сразу чинит драйверы.
-	private void OnRecoverMenu(object sender, RoutedEventArgs e)
-	{
-		if (RecoverNgenuityItem.Visibility == Visibility.Visible)
-		{
-			RecoverMenu.IsOpen = true;
-			return;
-		}
-
-		Recover(withNgenuity: false);
-	}
-
 	private void OnSettingsMenu(object sender, RoutedEventArgs e) => SettingsMenu.IsOpen = true;
 
-	// Кнопки стоят у правого края окна, а списки шире их: равняем по правому краю,
-	// иначе они вылезали бы за окно вправо. Меню восстановления раскрывается вверх,
-	// настройки — вниз: их кнопка живёт в заголовке.
-	private static CustomPopupPlacement[] PlaceOver(Size menu, Size button, Point offset) =>
-		[new CustomPopupPlacement(new Point(button.Width - menu.Width, -menu.Height - 6), PopupPrimaryAxis.Horizontal)];
-
+	// Кнопка настроек стоит у правого края заголовка, а список шире её: равняем по правому
+	// краю, иначе он вылезал бы за окно вправо.
 	private static CustomPopupPlacement[] PlaceUnder(Size menu, Size button, Point offset) =>
 		[new CustomPopupPlacement(new Point(button.Width - menu.Width, button.Height + 6), PopupPrimaryAxis.Horizontal)];
 
-	private void OnRecoverDrivers(object sender, RoutedEventArgs e) => Recover(withNgenuity: false);
-
-	private void OnRecoverNgenuity(object sender, RoutedEventArgs e) => Recover(withNgenuity: true);
-
-	// Восстановление переустанавливает устройства и может перезапустить службу звука и
-	// NGENUITY — на потоке интерфейса окно замерло бы на все эти секунды.
-	private async void Recover(bool withNgenuity)
+	// Восстановление переустанавливает устройства и может перезапустить службу звука —
+	// на потоке интерфейса окно замерло бы на все эти секунды.
+	private async void OnRecover(object sender, RoutedEventArgs e)
 	{
-		RecoverMenu.IsOpen = false;
 		RecoverButton.IsEnabled = false;
-		await Task.Run(() => _switcher.Recover(withNgenuity));
+		await Task.Run(_switcher.Recover);
 		RecoverButton.IsEnabled = true;
 	}
 
