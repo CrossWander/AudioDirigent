@@ -35,6 +35,26 @@
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
+    <!-- Подсказка. Без своего вида она берёт системный бледно-жёлтый фон, а буквы —
+         наш общий стиль текста: светлое по светлому, то есть пустота. -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="Background" Value="{DynamicResource Surface}"/>
+        <Setter Property="MaxWidth" Value="320"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}" BorderThickness="1"
+                            BorderBrush="{DynamicResource Line}" CornerRadius="7" Padding="10,7">
+                        <TextBlock Text="{TemplateBinding Content}" TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Приподнятая группа: единственная плоскость поверх полотна -->
     <Style x:Key="Group" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource Surface}"/>
