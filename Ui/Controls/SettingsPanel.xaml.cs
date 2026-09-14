@@ -192,6 +192,5 @@ public partial class SettingsPanel : UserControl
 	}
 
 	private void Warn(string message, string titleKey) =>
-		MessageBox.Show(Window.GetWindow(this)!, message, Localization.Get(titleKey),
-			MessageBoxButton.OK, MessageBoxImage.Warning);
+		Dialog.Say(Window.GetWindow(this)!, Localization.Get(titleKey), message);
 }

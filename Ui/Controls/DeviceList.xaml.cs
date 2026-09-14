@@ -245,10 +245,9 @@ public partial class DeviceList : UserControl
 			.Where(pattern => devices.Count(other => Config.Matches(other, pattern)) > 1)
 			.ToList();
 
-		if (shared.Count > 0 && MessageBox.Show(Window.GetWindow(this)!,
-				Localization.Format("langClearShared", string.Join(", ", shared)),
+		if (shared.Count > 0 && !Dialog.Ask(Window.GetWindow(this)!,
 				Localization.Get("langClearRule"),
-				MessageBoxButton.OKCancel, MessageBoxImage.Warning) != MessageBoxResult.OK)
+				Localization.Format("langClearShared", string.Join(", ", shared))))
 		{
 			return;
 		}

@@ -184,10 +184,9 @@ public partial class NearbyPanel : UserControl
 	// такое делать нельзя — человек решит, что сломалась программа.
 	private async void OnScan(object sender, RoutedEventArgs e)
 	{
-		if (_busy || MessageBox.Show(Window.GetWindow(this)!,
-				Localization.Get("langBluetoothScanWarning"),
+		if (_busy || !Dialog.Ask(Window.GetWindow(this)!,
 				Localization.Get("langBluetoothScan"),
-				MessageBoxButton.OKCancel, MessageBoxImage.Warning) != MessageBoxResult.OK)
+				Localization.Get("langBluetoothScanWarning")))
 		{
 			return;
 		}

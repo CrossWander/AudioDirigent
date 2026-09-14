@@ -222,4 +222,6 @@
     <sys:String x:Key="langBluetoothScanWarning">While the app listens to the air, everything playing over the same Bluetooth radio will stutter for a few seconds — headphones, a speaker, a headset microphone. This is how the radio works, not a fault.&#10;&#10;Look around anyway?</sys:String>
     <sys:String x:Key="langLogPaired">Paired: {0}</sys:String>
     <sys:String x:Key="langLogPairFailed">Could not pair: {0}</sys:String>
+    <sys:String x:Key="langOk">OK</sys:String>
+    <sys:String x:Key="langCancel">Cancel</sys:String>
 </ResourceDictionary>

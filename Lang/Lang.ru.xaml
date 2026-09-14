@@ -221,4 +221,6 @@
     <sys:String x:Key="langBluetoothScanWarning">Пока программа слушает эфир, всё, что играет через тот же радиомодуль Bluetooth, будет заикаться несколько секунд — наушники, колонка, микрофон гарнитуры. Так устроен радиомодуль, это не поломка.&#10;&#10;Всё равно поискать?</sys:String>
     <sys:String x:Key="langLogPaired">Спарено: {0}</sys:String>
     <sys:String x:Key="langLogPairFailed">Спарить не удалось: {0}</sys:String>
+    <sys:String x:Key="langOk">Хорошо</sys:String>
+    <sys:String x:Key="langCancel">Отмена</sys:String>
 </ResourceDictionary>

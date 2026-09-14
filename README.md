@@ -94,7 +94,10 @@ not about a device, and a card with a picture of headphones does not suit it.
 
 No system frame: the title bar is drawn by the app and doubles as its header, with its own
 settings, minimise, maximise and close buttons. Dragging, resizing and snapping stay native
-(`WindowChrome`), and a maximised window does not cover the taskbar.
+(`WindowChrome`), and a maximised window does not cover the taskbar. The questions the app
+asks — clearing a shared rule, listening to the air — wear the same face; a system message
+box in the middle of a frameless window looks like a guest from another program, and it is
+this program's own doing it is asking about.
 
 The window follows the Windows theme unless told otherwise, and light and dark are one
 markup: colours are named by role — canvas, surface, dimmed text, bad — and a palette
