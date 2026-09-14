@@ -23,6 +23,7 @@ internal static class Program
 		// Application создаётся всегда: словари строк грузятся по pack-схеме, а её включает он.
 		var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
 		Localization.Initialize();
+		Theme.Initialize();
 
 		// Программа живёт в трее сутками, и падение фонового потока раньше уносило её молча:
 		// пользователь замечал это только по мёртвому звуку после сна.

@@ -10,17 +10,22 @@ namespace AudioDirigent;
 /// <summary>Иконка в трее: владеет переключателем и окном, живёт всё время работы программы.</summary>
 internal sealed class TrayIcon : IDisposable
 {
-	// Меню рисует WinForms, до кистей окна ему не достать — цвета тёмной темы задаются здесь.
-	private static readonly Color _surface = Color.FromArgb(0x17, 0x1A, 0x21);
-	private static readonly Color _text = Color.FromArgb(0xE8, 0xEA, 0xF0);
-	private static readonly Color _hover = Color.FromArgb(0x23, 0x29, 0x36);
-	private static readonly Color _line = Color.FromArgb(0x26, 0x2B, 0x36);
+	// Меню рисует WinForms, до кистей окна ему не достать — цвета берём из той же палитры
+	// руками. Обе темы описаны здесь, потому что выбирать между ними приходится на лету.
+	private static Color Surface => Theme.Dark ? Color.FromArgb(0x1C, 0x1C, 0x1E) : Color.White;
+
+	private static Color Text => Theme.Dark ? Color.FromArgb(0xEC, 0xEC, 0xF0) : Color.FromArgb(0x1C, 0x1C, 0x1E);
+
+	private static Color Hover => Theme.Dark ? Color.FromArgb(0x2C, 0x2C, 0x30) : Color.FromArgb(0xED, 0xED, 0xF2);
+
+	private static Color Line => Theme.Dark ? Color.FromArgb(0x33, 0x33, 0x38) : Color.FromArgb(0xE0, 0xE0, 0xE6);
 
 	// Смена устройства — единственное событие, ради которого стоит показываться поверх всего.
 	private static readonly string[] _switchKeys =
 		["langLogSwitched", "langLogSwitchedFromNone", "langLogSwitchedIn", "langLogSwitchedInFromNone"];
 
 	private readonly Switcher _switcher = new();
+	private readonly ContextMenuStrip _menu;
 	private readonly NotifyIcon _icon;
 	private readonly Icon _iconActive = LoadIcon("app.ico");
 	private readonly Icon _iconPaused = LoadIcon("app-paused.ico");
@@ -31,28 +36,30 @@ internal sealed class TrayIcon : IDisposable
 	private MainWindow? _window;
 	private Hotkeys? _hotkeys;
 	private DevicePopup? _popup;
+	private Release? _update;
 
 	public TrayIcon(bool showWindow)
 	{
-		var menu = new ContextMenuStrip
+		_menu = new ContextMenuStrip
 		{
-			Renderer = new ToolStripProfessionalRenderer(new DarkMenuColors()),
-			BackColor = _surface,
-			ForeColor = _text,
+			Renderer = new ToolStripProfessionalRenderer(new MenuColours()),
 			ShowImageMargin = false,
 		};
 
-		_openItem.Font = new Font(menu.Font, FontStyle.Bold);
+		Repaint();
+		Theme.Changed += Repaint;
+
+		_openItem.Font = new Font(_menu.Font, FontStyle.Bold);
 		_openItem.Click += (_, _) => ShowWindow();
 		_pauseItem.Click += (_, _) => TogglePause();
 		_recoverItem.Click += (_, _) => Recover();
 		_exitItem.Click += (_, _) => Application.Current.Shutdown();
 
-		menu.Items.Add(_openItem);
-		menu.Items.Add(_pauseItem);
-		menu.Items.Add(_recoverItem);
-		menu.Items.Add(new ToolStripSeparator());
-		menu.Items.Add(_exitItem);
+		_menu.Items.Add(_openItem);
+		_menu.Items.Add(_pauseItem);
+		_menu.Items.Add(_recoverItem);
+		_menu.Items.Add(new ToolStripSeparator());
+		_menu.Items.Add(_exitItem);
 
 		Localization.Changed += UpdateMenuText;
 		UpdateMenuText();
@@ -62,7 +69,7 @@ internal sealed class TrayIcon : IDisposable
 			Icon = _iconActive,
 			Text = "AudioDirigent",
 			Visible = true,
-			ContextMenuStrip = menu,
+			ContextMenuStrip = _menu,
 		};
 		_icon.DoubleClick += (_, _) => ShowWindow();
 
@@ -72,6 +79,7 @@ internal sealed class TrayIcon : IDisposable
 		_switcher.Start();
 		_switcher.Log("langLogBuild", Build.Version);
 		SetHotkeys(Store.Current.Hotkeys);
+		CheckUpdates();
 
 		if (showWindow)
 		{
@@ -106,6 +114,27 @@ internal sealed class TrayIcon : IDisposable
 			_icon.ShowBalloonTip(4000, "AudioDirigent", entry.Text, ToolTipIcon.None);
 		}
 	});
+
+	// Ежедневная проверка, если её включили: единственный раз, когда программа идёт в сеть
+	// без просьбы. Молча — новость о новой версии ждёт в подвале открытого окна.
+	private void CheckUpdates()
+	{
+		if (!Updates.Due)
+		{
+			return;
+		}
+
+		Task.Run(async () =>
+		{
+			_update = await Updates.Check();
+
+			if (_update.State == UpdateState.Newer)
+			{
+				_switcher.Log("langLogUpdateFound", _update.Version!);
+				_window?.ShowUpdate(_update);
+			}
+		});
+	}
 
 	// Сочетания видит вся система, поэтому они включаются по просьбе, а не сами собой.
 	private void SetHotkeys(bool enabled)
@@ -158,7 +187,12 @@ internal sealed class TrayIcon : IDisposable
 
 	private void ShowWindow()
 	{
-		_window ??= new MainWindow(_switcher, TogglePause, SetHotkeys);
+		if (_window is null)
+		{
+			_window = new MainWindow(_switcher, TogglePause, SetHotkeys);
+			_window.ShowUpdate(_update);
+		}
+
 		_window.Show();
 		_window.WindowState = System.Windows.WindowState.Normal;
 		_window.Activate();
@@ -171,9 +205,18 @@ internal sealed class TrayIcon : IDisposable
 		return new Icon(stream);
 	}
 
+	// Цвета меню заданы руками: под чужой темой оно осталось бы тёмным на светлом окне.
+	private void Repaint()
+	{
+		_menu.BackColor = Surface;
+		_menu.ForeColor = Text;
+		_menu.Invalidate();
+	}
+
 	public void Dispose()
 	{
 		Localization.Changed -= UpdateMenuText;
+		Theme.Changed -= Repaint;
 		_hotkeys?.Dispose();
 		_popup?.Close();
 		_window?.Detach();
@@ -184,19 +227,19 @@ internal sealed class TrayIcon : IDisposable
 		_iconPaused.Dispose();
 	}
 
-	/// <summary>Меню трея рисуется WinForms — красим под тёмное окно.</summary>
-	private sealed class DarkMenuColors : ProfessionalColorTable
+	/// <summary>Меню трея рисуется WinForms — красим его под окно, какой бы теме оно ни следовало.</summary>
+	private sealed class MenuColours : ProfessionalColorTable
 	{
-		public override Color ToolStripDropDownBackground => _surface;
-		public override Color ImageMarginGradientBegin => _surface;
-		public override Color ImageMarginGradientMiddle => _surface;
-		public override Color ImageMarginGradientEnd => _surface;
-		public override Color MenuItemSelected => _hover;
-		public override Color MenuItemSelectedGradientBegin => _hover;
-		public override Color MenuItemSelectedGradientEnd => _hover;
-		public override Color MenuItemBorder => _line;
-		public override Color MenuBorder => _line;
-		public override Color SeparatorDark => _line;
-		public override Color SeparatorLight => _line;
+		public override Color ToolStripDropDownBackground => Surface;
+		public override Color ImageMarginGradientBegin => Surface;
+		public override Color ImageMarginGradientMiddle => Surface;
+		public override Color ImageMarginGradientEnd => Surface;
+		public override Color MenuItemSelected => Hover;
+		public override Color MenuItemSelectedGradientBegin => Hover;
+		public override Color MenuItemSelectedGradientEnd => Hover;
+		public override Color MenuItemBorder => Line;
+		public override Color MenuBorder => Line;
+		public override Color SeparatorDark => Line;
+		public override Color SeparatorLight => Line;
 	}
 }

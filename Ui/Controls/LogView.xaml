@@ -1,0 +1,17 @@
+<UserControl x:Class="AudioDirigent.LogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Expander x:Name="Panel" Expanded="OnExpanded" Collapsed="OnCollapsed" Foreground="{DynamicResource TextDim}">
+        <Expander.Header>
+            <TextBlock Text="{DynamicResource langLog}" Style="{DynamicResource Caption}"/>
+        </Expander.Header>
+
+        <Border Style="{DynamicResource Group}" Padding="14,12" Margin="0,8,0,0" Height="150">
+            <ScrollViewer x:Name="Scroll" VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="Text" FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                           Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+    </Expander>
+</UserControl>

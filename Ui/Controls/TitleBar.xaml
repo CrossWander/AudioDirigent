@@ -1,0 +1,51 @@
+<UserControl x:Class="AudioDirigent.TitleBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
+
+    <Grid Margin="20,0,12,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="AudioDirigent" FontSize="15" FontWeight="SemiBold"/>
+            <TextBlock Text="{DynamicResource langSubtitle}" Style="{DynamicResource Caption}" Margin="0,1,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                    shell:WindowChrome.IsHitTestVisibleInChrome="True">
+            <!-- Ползунки: настройки, которые ставят один раз -->
+            <Button Style="{DynamicResource Bare}" Click="OnSettings" ToolTip="{DynamicResource langSettings}">
+                <Canvas Width="16" Height="16">
+                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M1,4 H15 M1,8 H15 M1,12 H15"/>
+                    <Ellipse Canvas.Left="3.2" Canvas.Top="1.2" Width="5.6" Height="5.6"
+                             Fill="{DynamicResource Surface}"
+                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                             StrokeThickness="1.4"/>
+                    <Ellipse Canvas.Left="8.2" Canvas.Top="9.2" Width="5.6" Height="5.6"
+                             Fill="{DynamicResource Surface}"
+                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                             StrokeThickness="1.4"/>
+                </Canvas>
+            </Button>
+
+            <Button Style="{DynamicResource Bare}" Click="OnMinimise" Margin="2,0,0,0" ToolTip="{DynamicResource langMinimize}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1.3" Data="M0,0 H11"/>
+            </Button>
+            <Button Style="{DynamicResource Bare}" Click="OnMaximise" ToolTip="{DynamicResource langMaximize}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1.3" Data="M0,0 H10 V10 H0 Z"/>
+            </Button>
+            <Button x:Name="CloseButton" Style="{DynamicResource Bare}" Click="OnClose" ToolTip="{DynamicResource langClose}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M0,0 L10,10 M10,0 L0,10"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

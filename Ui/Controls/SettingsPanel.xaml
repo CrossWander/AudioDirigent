@@ -1,0 +1,81 @@
+<UserControl x:Class="AudioDirigent.SettingsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border Style="{DynamicResource Group}" Padding="18,16" Width="430">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="5" Direction="270" Opacity="0.25"/>
+        </Border.Effect>
+
+        <StackPanel>
+            <TextBlock Text="{DynamicResource langAppearance}" Style="{DynamicResource GroupHeader}"/>
+            <Border Style="{DynamicResource SegmentTrack}" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="ThemeAuto" Style="{DynamicResource Segment}" Tag="Auto"
+                                 Content="{DynamicResource langThemeAuto}" Checked="OnThemeChecked"/>
+                    <RadioButton x:Name="ThemeLight" Style="{DynamicResource Segment}" Tag="Light"
+                                 Content="{DynamicResource langThemeLight}" Checked="OnThemeChecked"/>
+                    <RadioButton x:Name="ThemeDark" Style="{DynamicResource Segment}" Tag="Dark"
+                                 Content="{DynamicResource langThemeDark}" Checked="OnThemeChecked"/>
+                </StackPanel>
+            </Border>
+
+            <Border Height="1" Background="{DynamicResource Line}" Margin="0,16,0,0"/>
+
+            <CheckBox x:Name="AutostartToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langAutostart}"
+                      Checked="OnAutostartChanged" Unchecked="OnAutostartChanged"/>
+            <TextBlock Text="{DynamicResource langAutostartHint}" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <CheckBox x:Name="UsbPowerToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langUsbPower}"
+                      Checked="OnUsbPowerChanged" Unchecked="OnUsbPowerChanged"/>
+            <TextBlock Text="{DynamicResource langUsbPowerHint}" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <Border Height="1" Background="{DynamicResource Line}" Margin="0,16,0,0"/>
+
+            <CheckBox x:Name="PopupToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langPopupSetting}"
+                      Checked="OnPopupChanged" Unchecked="OnPopupChanged"/>
+            <TextBlock Text="{DynamicResource langPopupSettingHint}" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <CheckBox x:Name="NotifyToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langNotify}"
+                      Checked="OnNotifyChanged" Unchecked="OnNotifyChanged"/>
+            <TextBlock Text="{DynamicResource langNotifyHint}" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <CheckBox x:Name="HotkeyToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langHotkeys}"
+                      Checked="OnHotkeysChanged" Unchecked="OnHotkeysChanged"/>
+            <TextBlock x:Name="HotkeyHint" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <Border Height="1" Background="{DynamicResource Line}" Margin="0,16,0,0"/>
+
+            <CheckBox x:Name="AutoUpdateToggle" Style="{DynamicResource Toggle}" Margin="0,16,0,0"
+                      Content="{DynamicResource langAutoUpdate}"
+                      Checked="OnAutoUpdateChanged" Unchecked="OnAutoUpdateChanged"/>
+            <TextBlock Text="{DynamicResource langAutoUpdateHint}" Style="{DynamicResource Caption}"
+                       Margin="0,4,52,0" TextWrapping="Wrap"/>
+
+            <!-- Не настройка, а действие: единственный раз, когда программа идёт в сеть сама -->
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="UpdateButton" Style="{DynamicResource Flat}"
+                        Content="{DynamicResource langCheckUpdates}" Click="OnCheckUpdates"/>
+                <Button x:Name="InstallButton" Grid.Column="1" Style="{DynamicResource Primary}"
+                        Margin="8,0,0,0" Visibility="Collapsed" HorizontalAlignment="Left"
+                        Content="{DynamicResource langInstallUpdate}" Click="OnInstall"/>
+                <TextBlock x:Name="UpdateResult" Grid.Column="1" Style="{DynamicResource Caption}"
+                           Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

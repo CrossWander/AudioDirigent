@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AudioDirigent;
 
@@ -17,6 +18,9 @@ internal static class Store
 	internal sealed class Data
 	{
 		public string Language { get; set; } = "en";
+
+		/// <summary>Светлая, тёмная или как в системе.</summary>
+		public ThemeMode Theme { get; set; } = ThemeMode.Auto;
 
 		public bool Notify { get; set; } = true;
 
@@ -40,6 +44,12 @@ internal static class Store
 
 		public List<string> UsbPowerHeld { get; set; } = [];
 
+		/// <summary>Спрашивать GitHub о новой версии раз в сутки. Выключено: сеть — по просьбе.</summary>
+		public bool AutoUpdate { get; set; }
+
+		/// <summary>Когда спрашивали в прошлый раз; null — ещё ни разу.</summary>
+		public DateTime? UpdateChecked { get; set; }
+
 		/// <summary>Опрос приёмника беспроводной гарнитуры; null — не настроен, и программа его не ведёт.</summary>
 		public ProbeRule? Probe { get; set; }
 	}
@@ -51,6 +61,8 @@ internal static class Store
 	private static readonly JsonSerializerOptions _format = new()
 	{
 		WriteIndented = true,
+		// Тема пишется словом, а не числом: файл открывает и правит человек.
+		Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 		PropertyNameCaseInsensitive = true,
 		ReadCommentHandling = JsonCommentHandling.Skip,

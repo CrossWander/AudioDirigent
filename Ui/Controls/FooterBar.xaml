@@ -1,0 +1,28 @@
+<UserControl x:Class="AudioDirigent.FooterBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock x:Name="Credits" Style="{DynamicResource Caption}" VerticalAlignment="Center"/>
+
+        <!-- Новость о новой версии остаётся на глазах и после того, как настройки закрыли -->
+        <TextBlock x:Name="UpdateLink" Grid.Column="1" Style="{DynamicResource Caption}" Margin="16,0"
+                   VerticalAlignment="Center" Cursor="Hand" Visibility="Collapsed"
+                   Foreground="{DynamicResource Accent}" TextDecorations="Underline"
+                   MouseLeftButtonUp="OnOpenReleases"/>
+
+        <Border Grid.Column="2" Style="{DynamicResource SegmentTrack}">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="LangRu" Style="{DynamicResource Segment}" Tag="ru" Content="RU" Checked="OnLanguage"/>
+                <RadioButton x:Name="LangUk" Style="{DynamicResource Segment}" Tag="uk" Content="UA" Checked="OnLanguage"/>
+                <RadioButton x:Name="LangEn" Style="{DynamicResource Segment}" Tag="en" Content="EN" Checked="OnLanguage"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
