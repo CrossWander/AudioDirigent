@@ -9,19 +9,7 @@ namespace AudioDirigent;
 // Штатного публичного API для смены устройства по умолчанию в Windows нет —
 // все существующие решения (SoundSwitch, AudioSwitcher, DefaultAudioChanger) идут этим же путём.
 
-internal enum EDataFlow { Render, Capture, All }
-
 internal enum ERole { Console, Multimedia, Communications }
-
-[Flags]
-internal enum DeviceState : uint
-{
-	Active = 0x1,
-	Disabled = 0x2,
-	NotPresent = 0x4,
-	Unplugged = 0x8,
-	All = 0xF,
-}
 
 [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
 internal class MMDeviceEnumeratorComObject { }
@@ -95,22 +83,6 @@ internal struct PropertyKey
 	public static PropertyKey Container => new(new Guid("8c7ed206-3f8a-4827-b3ab-ae9e1faefc6c"), 2);
 }
 
-/// <summary>Чем устройство является по мнению Windows. Значения — те, что отдаёт Core Audio.</summary>
-internal enum FormFactor
-{
-	RemoteNetwork,
-	Speakers,
-	LineLevel,
-	Headphones,
-	Microphone,
-	Headset,
-	Handset,
-	DigitalPassthrough,
-	Spdif,
-	Hdmi,
-	Unknown,
-}
-
 // Урезанный PROPVARIANT: нужны только строки и числа. Буфер намеренно больше настоящих
 // 24 байт (x64), чтобы COM гарантированно писал внутрь нашего стека.
 [StructLayout(LayoutKind.Sequential)]
@@ -180,37 +152,6 @@ internal interface IMMNotificationClient
 	void OnDeviceRemoved([MarshalAs(UnmanagedType.LPWStr)] string deviceId);
 	void OnDefaultDeviceChanged(EDataFlow flow, ERole role, [MarshalAs(UnmanagedType.LPWStr)] string defaultDeviceId);
 	void OnPropertyValueChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, PropertyKey key);
-}
-
-/// <param name="Node">Путь PnP устройства за эндпоинтом; null — Windows его не отдала.</param>
-/// <param name="Container">Корпус, общий для всех эндпоинтов одной железки; null — неизвестен.</param>
-internal sealed record AudioEndpoint(
-	string Id,
-	string Name,
-	DeviceState State,
-	EDataFlow Flow,
-	FormFactor Form,
-	string Bus,
-	string? Node,
-	Guid? Container)
-{
-	/// <summary>Устройство подключено по Bluetooth — хоть музыкой, хоть телефонным профилем.</summary>
-	public bool Bluetooth => Bus.StartsWith("BTH", StringComparison.OrdinalIgnoreCase);
-
-	/// <summary>
-	/// Телефонный профиль гарнитуры Bluetooth: моно, 16 кГц, голос. Windows заводит его
-	/// отдельной шиной, поэтому признак не зависит ни от имени устройства, ни от языка системы.
-	/// </summary>
-	public bool HandsFree => Bus.Equals("BTHHFENUM", StringComparison.OrdinalIgnoreCase);
-
-	/// <summary>Устройство существует только в виде драйвера: виртуальные кабели, микшеры, стримингс.</summary>
-	public bool Software => Bus.Equals("SWD", StringComparison.OrdinalIgnoreCase);
-
-	/// <summary>
-	/// Устройство появилось потому, что его воткнули рукой, — USB, разъём, HDMI. В отличие
-	/// от Bluetooth, который соединяется сам, это уже поступок, и он означает намерение.
-	/// </summary>
-	public bool Plugged => !Bluetooth && !Software;
 }
 
 internal static class Audio

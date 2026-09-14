@@ -3,9 +3,6 @@ using System.Linq;
 
 namespace AudioDirigent;
 
-/// <summary>Уровень, на который ставится устройство с именем, содержащим <see cref="Match"/>.</summary>
-internal sealed record VolumeRule(string Match, int Percent);
-
 /// <summary>
 /// Громкость, на которую программа ставит устройство, когда сама его выбрала. Windows
 /// помнит громкость каждого устройства и без нас, так что правила нужны только тем, кому
