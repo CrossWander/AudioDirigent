@@ -96,9 +96,14 @@ No system frame: the title bar is drawn by the app and doubles as its header, wi
 settings, minimise, maximise and close buttons. Dragging, resizing and snapping stay native
 (`WindowChrome`), and a maximised window does not cover the taskbar.
 
-Tray icon: red when watching, grey when paused. Double-click opens the window. Both the
-close button and minimise send it back to the tray — the app never sits on the taskbar;
-exit is in the tray menu.
+The window follows the Windows theme unless told otherwise, and light and dark are one
+markup: colours are named by role — canvas, surface, dimmed text, bad — and a palette
+answers. The accent is the one already picked in Windows, nudged until it reads on the
+ground it lands on, so the app looks like the rest of the desktop rather than like a brand.
+
+Tray icon: a conductor's baton, colour when watching, grey when paused. Double-click opens
+the window. Both the close button and minimise send it back to the tray — the app never
+sits on the taskbar; exit is in the tray menu.
 
 Inside:
 
@@ -112,8 +117,10 @@ Inside:
   write `config.json` immediately. Two more appear only when they apply: **Make it the main
   device** for a device outside the rules, and **Connect** / **Disconnect** for a Bluetooth
   headset. **Restore sound**, apart at the right end, acts on the system instead.
-- **Settings** — run at logon, USB port power, the connection card, balloons, and hotkeys.
-  Below them, apart, **Check for updates**: the only time the app touches the network.
+- **Settings** — theme, run at logon, USB port power, the connection card, balloons, and
+  hotkeys. Below them, apart, everything about new versions: **Check for updates**, a daily
+  check that can be switched on, and **Install** — the only times the app touches the
+  network.
 - **Log** — an expander with the switch history, trimmed to the last two days on every start.
 
 ### Connecting a Bluetooth headset
@@ -187,6 +194,21 @@ nodes. Clearing each toggle undoes its own change, so clear them before deleting
 On read-only media the app falls back to defaults: rules won't persist, but switching still
 works.
 
+### Updating
+
+**Check for updates** asks GitHub about the latest release; a daily check can be switched
+on, and it stays quiet unless there is something newer. **Install** downloads the new exe
+next to the old one, leaves a short script behind and quits.
+
+A program cannot replace its own file while it runs, so the script does it: it retries the
+move until Windows releases the file — by the fact of the move succeeding, not by a timer,
+because a single-file exe unpacks itself and holds its own file for a moment after the
+process is gone — then starts the new version and deletes both the leftover download and
+itself. Nothing of the old version stays in the folder.
+
+If the folder is read-only — the usual case being Program Files — the download fails and
+says so; the app is portable and belongs somewhere it can write.
+
 Build it yourself:
 
 ```powershell
@@ -195,16 +217,17 @@ dotnet build -c Release                  # for development
 .\tools\publish.ps1 -FrameworkDependent  # ~300 KB, needs .NET Desktop Runtime 10
 ```
 
-The sources sit in seven places, one namespace for all of them:
+The sources sit in eight places, one namespace for all of them:
 
 | Folder      | Contents                                                                   |
 |-------------|----------------------------------------------------------------------------|
 | root        | `Program.cs` — the entry point, and nothing else                           |
+| `Domain/`   | the ideas the app is about: an endpoint, a rule set, a pinned level        |
 | `Audio/`    | the point of the app: the watcher loop, the rules, the volume              |
 | `App/`      | its own housekeeping: the settings file, the journal, the build version    |
 | `Interop/`  | the bindings: Core Audio, Bluetooth over KS, HID and SetupAPI              |
 | `Platform/` | what those make the system do: PnP restart, scheduler task, USB power      |
-| `Ui/`       | the window, the tray icon and the connection card                          |
+| `Ui/`       | the window and its parts, the theme, the tray icon, the connection card    |
 | `Lang/`     | language: one dictionary per language, and the code that switches them     |
 
 There are no NuGet dependencies at all, and that is deliberate. Everything the app needs
