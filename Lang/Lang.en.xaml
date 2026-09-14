@@ -197,4 +197,29 @@
     <sys:String x:Key="langLogConnectFailed">Could not connect {0}.</sys:String>
     <sys:String x:Key="langLogDisconnectFailed">Could not disconnect {0}.</sys:String>
 
+    <sys:String x:Key="langCliNoRadio">No Bluetooth radio in this machine.</sys:String>
+    <sys:String x:Key="langCliScanning">Listening to the air — sound over the same radio will stutter…</sys:String>
+    <sys:String x:Key="langCliNoBluetooth">The radio remembers no devices.</sys:String>
+    <sys:String x:Key="langBluetoothHeadset">Headset</sys:String>
+    <sys:String x:Key="langBluetoothHeadphones">Headphones</sys:String>
+    <sys:String x:Key="langBluetoothSpeaker">Speaker</sys:String>
+    <sys:String x:Key="langBluetoothMicrophone">Microphone</sys:String>
+    <sys:String x:Key="langBluetoothCar">Car audio</sys:String>
+    <sys:String x:Key="langBluetoothAudio">Audio</sys:String>
+    <sys:String x:Key="langBluetoothOther">Other</sys:String>
+    <sys:String x:Key="langBluetooth">Bluetooth</sys:String>
+    <sys:String x:Key="langPair">Pair</sys:String>
+    <sys:String x:Key="langBluetoothConnected">connected</sys:String>
+    <sys:String x:Key="langBluetoothPaired">paired</sys:String>
+    <sys:String x:Key="langBluetoothNew">not paired</sys:String>
+    <sys:String x:Key="langBluetoothNoRadio">No Bluetooth radio in this machine.</sys:String>
+    <sys:String x:Key="langBluetoothEmpty">Nothing here. Windows remembers no Bluetooth device — look for one in the air with the button below.</sys:String>
+    <sys:String x:Key="langBluetoothHideHint">Do not show this device: the radio hears the neighbours too</sys:String>
+    <sys:String x:Key="langBluetoothShowHidden">Show hidden devices</sys:String>
+    <sys:String x:Key="langBluetoothScan">Look around</sys:String>
+    <sys:String x:Key="langBluetoothScanHint">Finds devices Windows has never seen. Sound over the same radio stutters while it listens.</sys:String>
+    <sys:String x:Key="langBluetoothScanning">Listening to the air…</sys:String>
+    <sys:String x:Key="langBluetoothScanWarning">While the app listens to the air, everything playing over the same Bluetooth radio will stutter for a few seconds — headphones, a speaker, a headset microphone. This is how the radio works, not a fault.&#10;&#10;Look around anyway?</sys:String>
+    <sys:String x:Key="langLogPaired">Paired: {0}</sys:String>
+    <sys:String x:Key="langLogPairFailed">Could not pair: {0}</sys:String>
 </ResourceDictionary>

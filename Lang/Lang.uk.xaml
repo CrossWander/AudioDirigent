@@ -196,4 +196,29 @@
     <sys:String x:Key="langLogConnectFailed">Не вдалося підключити {0}.</sys:String>
     <sys:String x:Key="langLogDisconnectFailed">Не вдалося відключити {0}.</sys:String>
 
+    <sys:String x:Key="langCliNoRadio">Радіомодуля Bluetooth у цій машині немає.</sys:String>
+    <sys:String x:Key="langCliScanning">Слухаю ефір — звук через той самий радіомодуль заїкатиметься…</sys:String>
+    <sys:String x:Key="langCliNoBluetooth">Радіомодуль не пам’ятає жодного пристрою.</sys:String>
+    <sys:String x:Key="langBluetoothHeadset">Гарнітура</sys:String>
+    <sys:String x:Key="langBluetoothHeadphones">Навушники</sys:String>
+    <sys:String x:Key="langBluetoothSpeaker">Колонка</sys:String>
+    <sys:String x:Key="langBluetoothMicrophone">Мікрофон</sys:String>
+    <sys:String x:Key="langBluetoothCar">Автомагнітола</sys:String>
+    <sys:String x:Key="langBluetoothAudio">Звук</sys:String>
+    <sys:String x:Key="langBluetoothOther">Інше</sys:String>
+    <sys:String x:Key="langBluetooth">Bluetooth</sys:String>
+    <sys:String x:Key="langPair">Спарити</sys:String>
+    <sys:String x:Key="langBluetoothConnected">підключено</sys:String>
+    <sys:String x:Key="langBluetoothPaired">спарено</sys:String>
+    <sys:String x:Key="langBluetoothNew">не спарено</sys:String>
+    <sys:String x:Key="langBluetoothNoRadio">Радіомодуля Bluetooth у цій машині немає.</sys:String>
+    <sys:String x:Key="langBluetoothEmpty">Порожньо. Windows не пам’ятає жодного пристрою Bluetooth — пошукайте в ефірі кнопкою нижче.</sys:String>
+    <sys:String x:Key="langBluetoothHideHint">Не показувати цей пристрій: радіомодуль чує й сусідські</sys:String>
+    <sys:String x:Key="langBluetoothShowHidden">Показувати приховані пристрої</sys:String>
+    <sys:String x:Key="langBluetoothScan">Пошукати поруч</sys:String>
+    <sys:String x:Key="langBluetoothScanHint">Знаходить пристрої, яких Windows ще не бачила. Поки триває пошук, звук через той самий радіомодуль заїкається.</sys:String>
+    <sys:String x:Key="langBluetoothScanning">Слухаю ефір…</sys:String>
+    <sys:String x:Key="langBluetoothScanWarning">Поки програма слухає ефір, усе, що грає через той самий радіомодуль Bluetooth, заїкатиметься кілька секунд — навушники, колонка, мікрофон гарнітури. Так влаштовано радіомодуль, це не поломка.&#10;&#10;Все одно пошукати?</sys:String>
+    <sys:String x:Key="langLogPaired">Спарено: {0}</sys:String>
+    <sys:String x:Key="langLogPairFailed">Спарити не вдалося: {0}</sys:String>
 </ResourceDictionary>

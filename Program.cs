@@ -37,6 +37,7 @@ internal static class Program
 			"--once" => OnceMode,
 			"--test" => SelfCheck,
 			"--devices" => DevicesMode,
+			"--bluetooth" => () => BluetoothMode(args.Skip(1).FirstOrDefault() == "scan"),
 			"--recover" => RecoverMode,
 			"--autostart" => () => AutostartMode(args.Skip(1).FirstOrDefault()),
 			"--help" or "-h" or "/?" => Usage,
@@ -136,6 +137,38 @@ internal static class Program
 			response is null ? Localization.Get("langCliNoReply") : Convert.ToHexString(response)));
 		Console.WriteLine(Localization.Format("langCliProbeOn",
 			probe.IsOn()?.ToString() ?? Localization.Get("langCliUnknown")));
+
+		return 0;
+	}
+
+	// Что помнит радиомодуль и кто из этого звучит. С «scan» вдобавок опрашивается эфир —
+	// так находятся ещё не спаренные устройства, ценой хрипящего на эти секунды звука.
+	private static int BluetoothMode(bool scan)
+	{
+		if (!Bluetooth.Present)
+		{
+			Console.WriteLine(Localization.Get("langCliNoRadio"));
+			return 1;
+		}
+
+		if (scan)
+		{
+			Console.WriteLine(Localization.Get("langCliScanning"));
+		}
+
+		var devices = Bluetooth.Devices(scan);
+		if (devices.Count == 0)
+		{
+			Console.WriteLine(Localization.Get("langCliNoBluetooth"));
+			return 0;
+		}
+
+		foreach (var device in devices.OrderByDescending(device => device.Audio).ThenBy(device => device.Name))
+		{
+			var state = device.Connected ? "connected" : device.Paired ? "paired" : "new";
+			Console.WriteLine($"{device.Pretty}  {state,-9} {device.Class:X6}  " +
+				$"{Localization.Get(device.Kind),-12} {device.Name}");
+		}
 
 		return 0;
 	}

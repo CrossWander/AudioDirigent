@@ -51,5 +51,11 @@
                AllowsTransparency="True" PopupAnimation="Fade">
             <local:SettingsPanel x:Name="Settings" Margin="12"/>
         </Popup>
+
+        <!-- Устройства Bluetooth рядом: к списку вывода они отношения не имеют, пока не спарены -->
+        <Popup x:Name="NearbyMenu" Placement="Custom" StaysOpen="False"
+               AllowsTransparency="True" PopupAnimation="Fade">
+            <local:NearbyPanel x:Name="Nearby" Margin="12"/>
+        </Popup>
     </Grid>
 </Window>

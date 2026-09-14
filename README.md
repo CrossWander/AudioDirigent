@@ -123,6 +123,28 @@ Inside:
   network.
 - **Log** — an expander with the switch history, trimmed to the last two days on every start.
 
+### The Bluetooth panel
+
+The Bluetooth mark in the title bar opens the list the radio keeps: every device Windows
+remembers, what kind it says it is, its address, and whether it is connected right now.
+**Connect** on any of them raises the link without a trip to Windows settings. **Look
+around** listens to the air for devices Windows has never seen and offers **Pair** — the
+pairing dialog is Windows' own, because it already knows how to compare a code, ask for a
+PIN and say all that in the right language.
+
+Listening to the air occupies the same radio the music goes through, so sound stutters
+while it runs. That is physics, not a bug, and the app says so before it starts rather than
+leaving you to wonder what broke. It never listens on its own — only on that button.
+
+A tick hides a device: a radio hears the neighbours' headphones as readily as your own, and
+a list full of strangers is worse than a short one. Hidden devices are kept by address, not
+by name — a device can rename itself — and a switch below brings them all back.
+
+One thing the panel cannot do is tell you a switched-off headset is nearby. A classic
+Bluetooth headset does not announce itself; it waits to be paged. Windows learns it is
+there by connecting to it, which is exactly what **Connect** does — so "is it in range" and
+"connect it" are the same question, answered the same way.
+
 ### Connecting a Bluetooth headset
 
 A paired headset that is not connected still sits in the list, and **Connect** raises the
@@ -353,6 +375,7 @@ the code to `Localization.Codes`.
 |-------------------------|-----------------------------------------------------------------|
 | (none)                  | open the window, keep running in the tray                       |
 | `--tray`                | start in the tray without a window — used by autostart           |
+| `--bluetooth [scan]`    | what the radio remembers; `scan` also listens to the air         |
 | `--once`                | apply the rule once and exit (console)                          |
 | `--list`                | every device with its state, bus and kind, and the current default |
 | `--test`                | self-check: the rule, the dictionaries, the card, the switching  |

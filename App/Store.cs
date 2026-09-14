@@ -52,6 +52,15 @@ internal static class Store
 
 		/// <summary>Опрос приёмника беспроводной гарнитуры; null — не настроен, и программа его не ведёт.</summary>
 		public ProbeRule? Probe { get; set; }
+
+		/// <summary>
+		/// Адреса устройств Bluetooth, которых в списке быть не должно: радиомодуль слышит
+		/// и соседские. Адрес, а не имя: имя устройство сообщает само и может его сменить.
+		/// </summary>
+		public List<string> HiddenBluetooth { get; set; } = [];
+
+		/// <summary>Показывать и скрытые тоже — иначе спрятанное по ошибке не вернуть.</summary>
+		public bool ShowHiddenBluetooth { get; set; }
 	}
 
 	private static readonly string _path = Path.Combine(AppContext.BaseDirectory, "config.json");

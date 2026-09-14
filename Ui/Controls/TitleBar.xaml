@@ -16,6 +16,13 @@
 
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
                     shell:WindowChrome.IsHitTestVisibleInChrome="True">
+            <!-- Знак Bluetooth: устройства, до которых из списка вывода не дотянуться -->
+            <Button Style="{DynamicResource Bare}" Click="OnNearby" ToolTip="{DynamicResource langBluetooth}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      StrokeLineJoin="Round" Data="M5.5,4.5 L10.5,9.5 L8,12 V0 L10.5,2.5 L5.5,7.5"/>
+            </Button>
+
             <!-- Ползунки: настройки, которые ставят один раз -->
             <Button Style="{DynamicResource Bare}" Click="OnSettings" ToolTip="{DynamicResource langSettings}">
                 <Canvas Width="16" Height="16">

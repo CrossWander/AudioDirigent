@@ -27,8 +27,10 @@ public partial class MainWindow : Window
 		Current.Attach(switcher);
 		Devices.Attach(switcher);
 		Settings.Attach(switcher, setHotkeys);
+		Nearby.Attach(switcher);
 
 		Bar.Settings += OnSettings;
+		Bar.Nearby += OnNearby;
 		Bar.Minimise += () => WindowState = WindowState.Minimized;
 		Bar.Maximise += () => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 		Bar.Close += Close;
@@ -39,6 +41,7 @@ public partial class MainWindow : Window
 		Log.HeightWanted += Grow;
 
 		SettingsMenu.CustomPopupPlacementCallback = PlaceUnder;
+		NearbyMenu.CustomPopupPlacementCallback = PlaceUnder;
 
 		_switcher.Logged += OnLogged;
 		_switcher.DevicesChanged += OnDevicesChanged;
@@ -118,6 +121,15 @@ public partial class MainWindow : Window
 		SettingsMenu.IsOpen = true;
 	}
 
+	// Список Bluetooth собирается на открытии: держать его свежим постоянно значило бы
+	// дёргать радиомодуль всё время, пока окно открыто.
+	private void OnNearby(FrameworkElement button)
+	{
+		Nearby.Reload();
+		NearbyMenu.PlacementTarget = button;
+		NearbyMenu.IsOpen = true;
+	}
+
 	private void OnPauseToggled()
 	{
 		_togglePause();
@@ -162,6 +174,7 @@ public partial class MainWindow : Window
 	{
 		Devices.CloseLevel();
 		SettingsMenu.IsOpen = false;
+		NearbyMenu.IsOpen = false;
 		Hide();
 	}
 }

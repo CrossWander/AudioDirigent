@@ -189,6 +189,34 @@
         </Setter>
     </Style>
 
+    <!-- Галочка: там, где переключатель был бы слишком заметен для мелкого выбора в строке -->
+    <Style x:Key="Tick" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Border x:Name="Box" Width="20" Height="20" CornerRadius="6" BorderThickness="1"
+                            Background="Transparent" BorderBrush="{DynamicResource Muted}">
+                        <Path x:Name="Mark" Stretch="Uniform" Width="10" Margin="0,1,0,0"
+                              Stroke="{DynamicResource AccentText}" StrokeThickness="2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Data="M0,4 L3.4,7.4 L9.6,1" Visibility="Collapsed"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource Accent}"/>
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            <Setter TargetName="Mark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Сегментированный выбор: вкладки, языки, тема — один вид на все три -->
     <Style x:Key="Segment" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource TextDim}"/>

@@ -12,6 +12,9 @@ public partial class TitleBar : UserControl
 	/// <summary>Нажата кнопка настроек — окно решает, где раскрыть их список.</summary>
 	public event Action<FrameworkElement>? Settings;
 
+	/// <summary>Нажат знак Bluetooth.</summary>
+	public event Action<FrameworkElement>? Nearby;
+
 	public event Action? Minimise;
 
 	public event Action? Maximise;
@@ -19,6 +22,8 @@ public partial class TitleBar : UserControl
 	public event Action? Close;
 
 	private void OnSettings(object sender, RoutedEventArgs e) => Settings?.Invoke((FrameworkElement)sender);
+
+	private void OnNearby(object sender, RoutedEventArgs e) => Nearby?.Invoke((FrameworkElement)sender);
 
 	private void OnMinimise(object sender, RoutedEventArgs e) => Minimise?.Invoke();
 
