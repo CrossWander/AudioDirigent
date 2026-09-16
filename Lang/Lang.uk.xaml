@@ -14,7 +14,6 @@
     <sys:String x:Key="langBadgeBlocked">Заборонено правилом «{0}»: основним пристроєм не стане ніколи</sys:String>
     <sys:String x:Key="langBadgePriority">Пріоритет {0} за правилом «{1}»: що менший номер, то раніше пристрій обирають</sys:String>
     <sys:String x:Key="langCurrentDevice">Зараз за замовчуванням</sys:String>
-    <sys:String x:Key="langLevelHeader">ГУЧНІСТЬ ПРИ ПЕРЕМИКАННІ</sys:String>
     <sys:String x:Key="langLevelNone">Гучність не закріплена. Натисніть, щоб задати</sys:String>
     <sys:String x:Key="langLevelPinned">При перемиканні ставиться {0}% за правилом «{1}»</sys:String>
     <sys:String x:Key="langLevelShared">Правило «{0}» діє і на інші пристрої з такою назвою</sys:String>
@@ -226,4 +225,8 @@
     <sys:String x:Key="langLevelHoldHint">Windows і так пам’ятає рівень. Вмикайте, лише якщо його хтось збиває: тоді програма повертатиме його щоразу, коли обирає пристрій.</sys:String>
     <sys:String x:Key="langCliMicLevel">  рівень точки: {0}%</sys:String>
     <sys:String x:Key="langCliMicNone">  крім рівня пристрій нічого не віддає</sys:String>
+    <sys:String x:Key="langVolume">Гучність</sys:String>
+    <sys:String x:Key="langSensitivity">Чутливість</sys:String>
+    <sys:String x:Key="langRowExpand">Налаштування цього пристрою</sys:String>
+    <sys:String x:Key="langDeviceBare">Крім рівня — нічого: підсилення та автопідстроювання у цього пристрою немає.</sys:String>
 </ResourceDictionary>

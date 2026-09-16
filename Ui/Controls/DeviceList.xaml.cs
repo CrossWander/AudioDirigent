@@ -13,7 +13,7 @@ namespace AudioDirigent;
 /// Ручка, которую отдало само устройство: ползунок усиления или выключатель автоподстройки.
 /// Подпись берём у драйвера — той же, что стоит в параметрах звука Windows.
 /// </summary>
-internal sealed record KnobRow(MicrophoneKnob Knob, string Name, bool IsLevel,
+internal sealed record KnobRow(string Device, MicrophoneKnob Knob, string Name, bool IsLevel,
 	double Minimum, double Maximum, double Step, bool Snap, double Value, bool On);
 
 /// <summary>
@@ -29,9 +29,9 @@ public partial class DeviceList : UserControl
 	private EDataFlow _flow = EDataFlow.Render;
 	private readonly DispatcherTimer _meter = new() { Interval = TimeSpan.FromMilliseconds(60) };
 
-	private AudioEndpoint? _level;
+	private DeviceRow? _open;
 	private Meter? _signal;
-	private bool _levelOpening;
+	private bool _filling;
 
 	public DeviceList()
 	{
@@ -61,7 +61,17 @@ public partial class DeviceList : UserControl
 			.ThenBy(device => device.Name)
 			.ToList();
 
+		// Перебор строк меняет выделение, а на выделение подвешено раскрытие: пока идёт
+		// сверка, оно не должно принимать перестановку за выбор человека.
+		_filling = true;
 		Sync(devices);
+		_filling = false;
+
+		// Раскрытое устройство могло и пропасть — тогда отпускаем и поток с него.
+		if (_open is { } open && !_rows.Contains(open))
+		{
+			Close();
+		}
 
 		foreach (var row in _rows)
 		{
@@ -186,7 +196,24 @@ public partial class DeviceList : UserControl
 			device?.State == DeviceState.Active ? "langDisconnect" : "langConnect");
 	}
 
-	private void OnSelected(object sender, SelectionChangedEventArgs e) => UpdateActions();
+	private void OnSelected(object sender, SelectionChangedEventArgs e)
+	{
+		if (!_filling)
+		{
+			Expand(Rows.SelectedItem as DeviceRow);
+		}
+
+		UpdateActions();
+	}
+
+	// Шеврон делает то же самое: он нужен, чтобы раскрытие было видно, а не угадывалось.
+	private void OnChevron(object sender, RoutedEventArgs e)
+	{
+		if ((sender as FrameworkElement)?.DataContext is DeviceRow row)
+		{
+			Expand(row.Expanded ? null : row);
+		}
+	}
 
 	private void OnFlowChecked(object sender, RoutedEventArgs e)
 	{
@@ -199,6 +226,7 @@ public partial class DeviceList : UserControl
 		_flow = tag == "input" ? EDataFlow.Capture : EDataFlow.Render;
 
 		// Направления показывают разные наборы устройств: строки прошлого здесь не годятся.
+		Close();
 		_rows.Clear();
 		Refill();
 		FlowChanged?.Invoke(_flow);
@@ -290,52 +318,75 @@ public partial class DeviceList : UserControl
 		RecoverButton.IsEnabled = true;
 	}
 
-	// Уровень правится там же, где виден: плашка в строке открывает ползунок над собой.
-	private void OnLevelChip(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Раскрыть строку, свернув прежнюю. Раскрытых всегда не больше одной: измеритель
+	/// держит поток с микрофона, и держать их по числу строк незачем.
+	/// </summary>
+	private void Expand(DeviceRow? row)
 	{
-		if (sender is not Button { DataContext: DeviceRow row } chip)
+		if (ReferenceEquals(_open, row))
 		{
 			return;
 		}
 
-		_level = row.Device;
-		LevelDevice.Text = row.Name;
+		Close();
 
-		var pinned = Volume.For(row.Device);
-		LevelShared.Text = Localization.Format("langLevelShared", pinned?.Match ?? "");
-		LevelShared.Visibility = pinned is not null && pinned.Match != row.Device.Name
-			? Visibility.Visible
-			: Visibility.Collapsed;
-
-		// Ползунок встаёт на закреплённый уровень, а если его нет — на нынешний уровень
-		// устройства: иначе первое же движение швырнуло бы громкость от нуля.
-		_levelOpening = true;
-		LevelSlider.Value = pinned?.Percent ?? Audio.GetVolume(row.Device.Id) ?? 50;
-		HoldToggle.IsChecked = pinned is not null;
-		_levelOpening = false;
-
-		// Усиление и автоподстройка живут в самом устройстве, и есть они далеко не у всех.
-		// У вывода их не спрашиваем: разговор про чувствительность — про запись.
-		var capture = row.Device.Flow == EDataFlow.Capture;
-		Knobs.ItemsSource = capture ? Read(row.Device) : null;
-
-		// Полоска сигнала нужна там, где настраивают на глаз, а не на слух. Меряет она
-		// по своему потоку: без него пик у точки всегда ноль, сколько в микрофон ни говори.
-		_signal = capture ? Meter.Open(row.Device.Id) : null;
-		MeterTrack.Visibility = _signal is null ? Visibility.Collapsed : Visibility.Visible;
-
-		if (_signal is not null)
+		if (row is not { Active: true })
 		{
-			_meter.Start();
+			return;
 		}
 
-		LevelMenu.PlacementTarget = chip;
-		LevelMenu.IsOpen = true;
+		_open = row;
+		Fill(row);
+		row.Expanded = true;
+
+		// Полоска меряет по своему потоку: без него пик у точки всегда ноль, сколько
+		// в микрофон ни говори. Windows в своей панели звука открывает его ровно за этим.
+		if (row.Capture)
+		{
+			_signal = Meter.Open(row.Device.Id);
+			_meter.Start();
+		}
+	}
+
+	private void Close()
+	{
+		_meter.Stop();
+		_signal?.Dispose();
+		_signal = null;
+
+		if (_open is { } row)
+		{
+			row.Expanded = false;
+			_open = null;
+		}
+	}
+
+	private void Fill(DeviceRow row)
+	{
+		var device = row.Device;
+		var capture = device.Flow == EDataFlow.Capture;
+		var pinned = Volume.For(device);
+
+		row.Capture = capture;
+		row.LevelName = Localization.Get(capture ? "langSensitivity" : "langVolume");
+		row.Volume = Audio.GetVolume(device.Id) ?? pinned?.Percent ?? 50;
+		row.Hold = pinned is not null;
+		row.Peak = 0;
+
+		// Правило ловит по куску имени и может накрыть соседей — об этом надо сказать.
+		row.Shared = pinned is not null && pinned.Match != device.Name
+			? Localization.Format("langLevelShared", pinned.Match)
+			: null;
+
+		row.Knobs = capture ? Read(device) : [];
+		row.Bare = capture && row.Knobs.Count == 0;
 	}
 
 	private static List<KnobRow> Read(AudioEndpoint device) =>
 	[
 		.. Microphone.Knobs(device.Id).Select(knob => new KnobRow(
+			Device: device.Id,
 			Knob: knob,
 			Name: knob.Name,
 			IsLevel: knob.Kind == MicrophoneKnobKind.Level,
@@ -350,65 +401,60 @@ public partial class DeviceList : UserControl
 
 	private void ShowPeak()
 	{
-		if (_signal is { } signal)
+		if (_open is { } row && _signal is { } signal)
 		{
-			MeterFill.Width = Math.Max(0, MeterTrack.ActualWidth * Math.Clamp(signal.Peak, 0, 1));
+			row.Peak = Math.Clamp(signal.Peak, 0, 1) * 100;
 		}
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.
-	private void OnLevelChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+	private void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 	{
-		LevelValue.Text = $"{(int)e.NewValue}%";
-
-		if (!_levelOpening && _level is { } device)
+		if ((sender as FrameworkElement)?.DataContext is DeviceRow row && row.Expanded)
 		{
-			Audio.SetVolume(device.Id, (int)e.NewValue);
+			Audio.SetVolume(row.Device.Id, (int)e.NewValue);
 		}
+	}
+
+	// Уровень уже стоит на устройстве, и Windows помнит его сама. Правило существует ровно
+	// тогда, когда нажата эта галочка: другого смысла у него нет.
+	private void OnHoldChanged(object sender, RoutedEventArgs e)
+	{
+		if (sender is not CheckBox box || box.DataContext is not DeviceRow row || !row.Expanded)
+		{
+			return;
+		}
+
+		if (box.IsChecked == true)
+		{
+			Volume.Pin(row.Device, (int)row.Volume);
+		}
+		else
+		{
+			Volume.Unpin(row.Device);
+		}
+
+		Refill();
 	}
 
 	// Усиление уходит прямо в устройство, и Windows помнит его сама — правило тут не нужно.
 	private void OnKnobChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 	{
-		if (sender is Slider { DataContext: KnobRow row } && _level is { } device)
+		// Ручки рождаются уже со своими значениями: первый ход ползунка — это не правка.
+		if (_open is { Expanded: true } && (sender as FrameworkElement)?.DataContext is KnobRow row)
 		{
-			Microphone.SetLevel(device.Id, row.Knob.Part, (float)e.NewValue);
+			Microphone.SetLevel(row.Device, row.Knob.Part, (float)e.NewValue);
 		}
 	}
 
 	private void OnKnobToggled(object sender, RoutedEventArgs e)
 	{
-		if (sender is CheckBox { DataContext: KnobRow row } box && _level is { } device)
+		if (_open is { Expanded: true } && sender is CheckBox { DataContext: KnobRow row } box)
 		{
-			Microphone.SetAutoGain(device.Id, row.Knob.Part, box.IsChecked == true);
+			Microphone.SetAutoGain(row.Device, row.Knob.Part, box.IsChecked == true);
 		}
 	}
 
-	// Уровень уже стоит на устройстве — при закрытии решается только, удерживать ли его.
-	// Правило существует ровно тогда, когда галочка нажата: другого смысла у него нет.
-	private void OnLevelClosed(object sender, EventArgs e)
-	{
-		_meter.Stop();
-		_signal?.Dispose();
-		_signal = null;
-
-		if (_level is { } device)
-		{
-			if (HoldToggle.IsChecked == true)
-			{
-				Volume.Pin(device, (int)LevelSlider.Value);
-			}
-			else
-			{
-				Volume.Unpin(device);
-			}
-
-			Refill();
-		}
-
-		_level = null;
-	}
-
-	/// <summary>Окно уходит в трей — ползунок закрываем сами, иначе уровень не запишется.</summary>
-	internal void CloseLevel() => LevelMenu.IsOpen = false;
+	/// <summary>Окно уходит в трей — поток с микрофона надо отпустить.</summary>
+	internal void CloseLevel() => Close();
 }

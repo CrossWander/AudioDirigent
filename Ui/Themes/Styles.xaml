@@ -307,6 +307,28 @@
         <Setter Property="Padding" Value="2"/>
     </Style>
 
+    <!-- Полоска сигнала. Ширину заливки считает сам ProgressBar: своя арифметика на
+         это была бы ровно тем же, только руками. -->
+    <Style x:Key="Meter" TargetType="ProgressBar">
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Minimum" Value="0"/>
+        <Setter Property="Maximum" Value="100"/>
+        <Setter Property="Background" Value="{DynamicResource BadgeFill}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Good}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="3" ClipToBounds="True">
+                        <Decorator x:Name="PART_Track">
+                            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="3"
+                                    Background="{TemplateBinding Foreground}"/>
+                        </Decorator>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Полоса прокрутки поверх содержимого, без своей колеи -->
     <Style TargetType="ScrollBar">
         <Setter Property="Width" Value="10"/>

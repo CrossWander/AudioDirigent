@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -29,6 +30,15 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private bool _active;
 	private bool _current;
 	private bool _pinned;
+	private bool _expanded;
+	private bool _capture;
+	private bool _bare;
+	private string _levelName = "";
+	private string? _shared;
+	private double _volume;
+	private double _peak;
+	private bool _hold;
+	private IReadOnlyList<KnobRow> _knobs = [];
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -56,6 +66,32 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Уровень громкости закреплён правилом.</summary>
 	public bool Pinned { get => _pinned; set => Set(ref _pinned, value); }
+
+	/// <summary>Строка раскрыта: под ней показаны её настройки.</summary>
+	public bool Expanded { get => _expanded; set => Set(ref _expanded, value); }
+
+	/// <summary>Устройство записи: у него бывают и полоска сигнала, и ручки железа.</summary>
+	public bool Capture { get => _capture; set => Set(ref _capture, value); }
+
+	/// <summary>Кроме уровня устройство ничего не отдаёт — молчать об этом нельзя.</summary>
+	public bool Bare { get => _bare; set => Set(ref _bare, value); }
+
+	/// <summary>У вывода это громкость, у записи то же число Windows зовёт чувствительностью.</summary>
+	public string LevelName { get => _levelName; set => Set(ref _levelName, value); }
+
+	/// <summary>Правило уровня ловит не только это устройство; null — ловит только его.</summary>
+	public string? Shared { get => _shared; set => Set(ref _shared, value); }
+
+	public double Volume { get => _volume; set => Set(ref _volume, value); }
+
+	/// <summary>Пик сигнала в процентах — им растёт полоска под ползунком.</summary>
+	public double Peak { get => _peak; set => Set(ref _peak, value); }
+
+	/// <summary>Удерживать уровень: правило существует ровно тогда, когда это включено.</summary>
+	public bool Hold { get => _hold; set => Set(ref _hold, value); }
+
+	/// <summary>Ручки, которые отдало само устройство: усиление, автоподстройка.</summary>
+	public IReadOnlyList<KnobRow> Knobs { get => _knobs; set => Set(ref _knobs, value); }
 
 	/// <summary>Строка живёт, пока живёт устройство: обновляем её, а не создаём заново.</summary>
 	public void Update(AudioEndpoint fresh)
