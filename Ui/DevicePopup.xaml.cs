@@ -126,7 +126,7 @@ public partial class DevicePopup : Window
 		// за сменой устройства, увёл бы звук обратно — устройства-то в приоритетах ещё нет.
 		var rules = _switcher.Rules;
 		_switcher.Save(rules.With(device.Flow, rules.For(device.Flow).Promote(device)));
-		Audio.SetDefault(device.Id);
+		Endpoints.MakeCurrent(device);
 
 		Dismiss();
 	}

@@ -346,23 +346,31 @@ internal static class Audio
 		}
 	}
 
-	private static IAudioEndpointVolume? Endpoint(string deviceId)
+	/// <summary>
+	/// Достать у устройства одну из его служб. Null значит «не отозвалось» и ничего больше:
+	/// устройство могло исчезнуть между выбором и настройкой, и это обычное дело.
+	/// </summary>
+	internal const uint ClsCtxAll = 23;
+
+	/// <inheritdoc cref="Activate{T}(string, uint)"/>
+	internal static T? Activate<T>(string deviceId, uint clsCtx = 0 /* CLSCTX_INPROC_SERVER */)
+		where T : class
 	{
-		var iid = typeof(IAudioEndpointVolume).GUID;
+		var iid = typeof(T).GUID;
 		try
 		{
 			var device = CreateEnumerator().GetDevice(deviceId);
 
-			return device.Activate(ref iid, 0 /* CLSCTX_INPROC_SERVER */, IntPtr.Zero, out var raw) == 0
-				? raw as IAudioEndpointVolume
-				: null;
+			return device.Activate(ref iid, clsCtx, IntPtr.Zero, out var raw) == 0 ? raw as T : null;
 		}
 		catch (COMException)
 		{
-			// устройство исчезло между выбором и настройкой громкости
 			return null;
 		}
 	}
+
+	private static IAudioEndpointVolume? Endpoint(string deviceId) =>
+		Activate<IAudioEndpointVolume>(deviceId);
 
 	public static void SetDefault(string deviceId)
 	{

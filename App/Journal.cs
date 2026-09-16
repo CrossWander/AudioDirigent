@@ -9,7 +9,7 @@ namespace AudioDirigent;
 
 /// <summary>
 /// Запись журнала: время и сообщение ключом. Текстом оно становится у того, кто его
-/// показывает, — см. <see cref="Localization.Of(Phrase)"/>.
+/// показывает, и на языке, выбранном к тому моменту.
 /// </summary>
 internal sealed record LogEntry(DateTime Time, Phrase Message);
 

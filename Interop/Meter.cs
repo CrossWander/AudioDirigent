@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace AudioDirigent;
@@ -12,8 +12,6 @@ namespace AudioDirigent;
 internal sealed class Meter : IDisposable
 {
 	private const int _shared = 0;
-	private const uint _clsCtxAll = 23;
-
 	// Буфера на пятую долю секунды хватает: его успевают вычерпать между показами полоски.
 	private const long _buffer = 2_000_000;
 
@@ -34,8 +32,8 @@ internal sealed class Meter : IDisposable
 		IntPtr format = IntPtr.Zero;
 		try
 		{
-			if (Activate<IAudioClient>(endpointId) is not { } client
-				|| Activate<IAudioMeterInformation>(endpointId) is not { } meter
+			if (Audio.Activate<IAudioClient>(endpointId, Audio.ClsCtxAll) is not { } client
+				|| Audio.Activate<IAudioMeterInformation>(endpointId, Audio.ClsCtxAll) is not { } meter
 				|| client.GetMixFormat(out format) != 0)
 			{
 				return null;
@@ -102,14 +100,6 @@ internal sealed class Meter : IDisposable
 
 			_capture.ReleaseBuffer(taken);
 		}
-	}
-
-	private static T? Activate<T>(string endpointId) where T : class
-	{
-		var iid = typeof(T).GUID;
-		var device = ((IMMDeviceEnumerator)new MMDeviceEnumeratorComObject()).GetDevice(endpointId);
-
-		return device.Activate(ref iid, _clsCtxAll, IntPtr.Zero, out var raw) == 0 ? raw as T : null;
 	}
 
 	public void Dispose()

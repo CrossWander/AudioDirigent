@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,8 +26,8 @@ public partial class CurrentDevice : UserControl
 			return;
 		}
 
-		var devices = Audio.ListDevices(flow);
-		DeviceName.Text = Audio.GetDefault(flow, ERole.Multimedia)?.Name ?? Localization.Get("langNone");
+		var devices = Endpoints.All(flow);
+		DeviceName.Text = Endpoints.Current(flow)?.Name ?? Localization.Get("langNone");
 		DeviceCount.Text = Localization.Format("langActiveOf",
 			devices.Count(device => device.State == DeviceState.Active), devices.Count);
 

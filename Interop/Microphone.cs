@@ -30,8 +30,6 @@ internal enum MicrophoneKnobKind
 /// </summary>
 internal static class Microphone
 {
-	private const uint _clsCtxAll = 23;
-
 	// Узлы топологии зовут себя подтипом, а не именем: имя у них бывает пустым.
 	private static readonly Guid _volumeNode = new("3A5ACC00-C557-11D0-8A2B-00A0C9255AC1");
 	private static readonly Guid _autoGainNode = new("E88C9BA0-C557-11D0-8A2B-00A0C9255AC1");
@@ -86,7 +84,7 @@ internal static class Microphone
 	{
 		try
 		{
-			if (Activate<IDeviceTopology>(endpointId) is not { } topology)
+			if (Audio.Activate<IDeviceTopology>(endpointId, Audio.ClsCtxAll) is not { } topology)
 			{
 				trace?.Invoke("no topology");
 
@@ -176,19 +174,11 @@ internal static class Microphone
 		}
 	}
 
-	private static T? Activate<T>(string endpointId) where T : class
-	{
-		var iid = typeof(T).GUID;
-		var device = ((IMMDeviceEnumerator)new MMDeviceEnumeratorComObject()).GetDevice(endpointId);
-
-		return device.Activate(ref iid, _clsCtxAll, IntPtr.Zero, out var raw) == 0 ? raw as T : null;
-	}
-
 	private static T? Activate<T>(IPart part) where T : class
 	{
 		var iid = typeof(T).GUID;
 
-		return part.Activate(_clsCtxAll, ref iid, out var raw) == 0 ? raw as T : null;
+		return part.Activate(Audio.ClsCtxAll, ref iid, out var raw) == 0 ? raw as T : null;
 	}
 
 	[ComImport, Guid("2A07407E-6497-4A18-9787-32F79BD0D98F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

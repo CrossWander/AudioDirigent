@@ -72,8 +72,8 @@ public partial class DeviceList : UserControl
 		}
 
 		var config = switcher.Rules.For(_flow);
-		var current = Audio.GetDefault(_flow, ERole.Multimedia);
-		var devices = Audio.ListDevices(_flow)
+		var current = Endpoints.Current(_flow);
+		var devices = Endpoints.All(_flow)
 			.OrderByDescending(device => device.State == DeviceState.Active)
 			.ThenBy(device => device.Name)
 			.ToList();
@@ -203,7 +203,7 @@ public partial class DeviceList : UserControl
 		var undecided = device is { State: DeviceState.Active }
 			&& config.Rank(device) < 0
 			&& !config.Blocks(device)
-			&& device.Id != Audio.GetDefault(_flow, ERole.Multimedia)?.Id;
+			&& device.Id != Endpoints.Current(_flow)?.Id;
 
 		MakeMainButton.Visibility = undecided ? Visibility.Visible : Visibility.Collapsed;
 
@@ -268,7 +268,7 @@ public partial class DeviceList : UserControl
 		// Сначала правило, потом переключение: иначе пересчёт, который идёт следом за сменой
 		// устройства, увёл бы звук обратно — устройства-то в приоритетах ещё нет.
 		Apply(_switcher!.Rules.For(_flow).Promote(device));
-		Audio.SetDefault(device.Id);
+		Endpoints.MakeCurrent(device);
 	}
 
 	// Команда уходит мгновенно, а связь поднимается ещё секунду-другую: список обновится сам,
@@ -305,7 +305,7 @@ public partial class DeviceList : UserControl
 		}
 
 		var config = _switcher!.Rules.For(_flow);
-		var devices = Audio.ListDevices(_flow);
+		var devices = Endpoints.All(_flow);
 		var shared = config.Rules(device)
 			.Where(pattern => devices.Count(other => Config.Matches(other, pattern)) > 1)
 			.ToList();
@@ -370,7 +370,7 @@ public partial class DeviceList : UserControl
 		// в микрофон ни говори. Windows в своей панели звука открывает его ровно за этим.
 		if (row.Capture)
 		{
-			_signal = Meter.Open(row.Device.Id);
+			_signal = Endpoints.Signal(row.Device);
 			_meter.Start();
 		}
 	}
@@ -396,7 +396,7 @@ public partial class DeviceList : UserControl
 
 		row.Capture = capture;
 		row.LevelName = Localization.Get(capture ? "langSensitivity" : "langVolume");
-		row.Volume = Audio.GetVolume(device.Id) ?? pinned?.Percent ?? 50;
+		row.Volume = Endpoints.Level(device) ?? pinned?.Percent ?? 50;
 		row.Hold = pinned is not null;
 		row.Peak = 0;
 
@@ -411,7 +411,7 @@ public partial class DeviceList : UserControl
 
 	private static List<KnobRow> Read(AudioEndpoint device) =>
 	[
-		.. Microphone.Knobs(device.Id).Select(knob => new KnobRow(
+		.. Endpoints.Knobs(device).Select(knob => new KnobRow(
 			Knob: knob,
 			// Шаг ноль означает плавный ход: делений у такого ползунка нет.
 			Step: knob.Step > 0 ? knob.Step : 1,
@@ -446,7 +446,7 @@ public partial class DeviceList : UserControl
 		if ((sender as FrameworkElement)?.DataContext is DeviceRow row && row.Expanded)
 		{
 			row.Volume = e.NewValue;
-			Audio.SetVolume(row.Device.Id, (int)e.NewValue);
+			Endpoints.SetLevel(row.Device, (int)e.NewValue);
 		}
 	}
 
@@ -489,7 +489,7 @@ public partial class DeviceList : UserControl
 		}
 
 		row.Value = e.NewValue;
-		Microphone.SetLevel(row.Knob, (float)e.NewValue);
+		Endpoints.Turn(row.Knob, (float)e.NewValue);
 	}
 
 	private void OnKnobToggled(object sender, RoutedEventArgs e)
@@ -500,7 +500,7 @@ public partial class DeviceList : UserControl
 		}
 
 		row.On = box.IsChecked == true;
-		Microphone.SetAutoGain(row.Knob, row.On);
+		Endpoints.Switch(row.Knob, row.On);
 	}
 
 	/// <summary>Окно уходит в трей — поток с микрофона надо отпустить.</summary>

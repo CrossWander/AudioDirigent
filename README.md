@@ -278,12 +278,22 @@ The sources sit in eight places, one namespace for all of them:
 |-------------|----------------------------------------------------------------------------|
 | root        | `Program.cs` — the entry point, and nothing else                           |
 | `Domain/`   | the ideas the app is about: an endpoint, a rule set, a pinned level        |
-| `Audio/`    | the point of the app: the watcher loop, the rules, the volume              |
+| `Audio/`    | the point of the app: the watcher loop, the rules, the one door into sound |
 | `App/`      | its own housekeeping: the settings file, the journal, the build version    |
 | `Interop/`  | the bindings: Core Audio, device topology, Bluetooth, HID and SetupAPI     |
 | `Platform/` | what those make the system do: PnP restart, scheduler task, USB power      |
-| `Ui/`       | the window and its parts, the theme, the tray icon, the connection card    |
+| `Ui/`       | the window and its parts, the theme, the tray, the hotkeys, the card       |
 | `Lang/`     | language: one dictionary per language, and the code that switches them     |
+
+Nothing below `Ui/` and `Lang/` knows what language the app is in. When something down
+there has to say something, it returns a `Phrase` — a dictionary key and its arguments —
+and the text is assembled by whoever shows it, in the language chosen at that moment rather
+than the one that was chosen when the thing happened. The journal has always worked this
+way, for exactly that reason; the rest of the app now does too.
+
+`Audio/Endpoints.cs` is the only place the window reaches sound through. It is a thin
+thing and adds almost nothing of its own — that is the point: the day the default device
+has to be changed some other way, it changes in one file.
 
 There are no NuGet dependencies at all, and that is deliberate. Everything the app needs
 from Windows is reached through hand-written P/Invoke: the battery property, the device

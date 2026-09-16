@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -60,7 +60,7 @@ public partial class NearbyPanel : UserControl
 	{
 		// Звук привязан к устройству адресом: он стоит прямо в пути узла PnP той точки,
 		// через которую этот наушник играет.
-		var endpoints = Audio.ListDevices(EDataFlow.Render)
+		var endpoints = Endpoints.All(EDataFlow.Render)
 			.Where(device => device.Bluetooth && device.Node is not null)
 			.ToList();
 
