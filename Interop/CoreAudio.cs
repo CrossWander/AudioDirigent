@@ -343,25 +343,6 @@ internal static class Audio
 		}
 	}
 
-	/// <summary>Пик сигнала, 0…1; null — точка молчит о нём или исчезла.</summary>
-	public static float? Peak(string deviceId)
-	{
-		var iid = typeof(IAudioMeterInformation).GUID;
-		try
-		{
-			var device = CreateEnumerator().GetDevice(deviceId);
-
-			return device.Activate(ref iid, 0 /* CLSCTX_INPROC_SERVER */, IntPtr.Zero, out var raw) == 0
-				&& raw is IAudioMeterInformation meter
-					? meter.GetPeakValue()
-					: null;
-		}
-		catch (COMException)
-		{
-			return null;
-		}
-	}
-
 	private static IAudioEndpointVolume? Endpoint(string deviceId)
 	{
 		var iid = typeof(IAudioEndpointVolume).GUID;

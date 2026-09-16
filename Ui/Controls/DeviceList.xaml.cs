@@ -30,6 +30,7 @@ public partial class DeviceList : UserControl
 	private readonly DispatcherTimer _meter = new() { Interval = TimeSpan.FromMilliseconds(60) };
 
 	private AudioEndpoint? _level;
+	private Meter? _signal;
 	private bool _levelOpening;
 
 	public DeviceList()
@@ -318,9 +319,12 @@ public partial class DeviceList : UserControl
 		var capture = row.Device.Flow == EDataFlow.Capture;
 		Knobs.ItemsSource = capture ? Read(row.Device) : null;
 
-		// Полоска сигнала нужна там, где настраивают на глаз, а не на слух.
-		MeterTrack.Visibility = capture ? Visibility.Visible : Visibility.Collapsed;
-		if (capture)
+		// Полоска сигнала нужна там, где настраивают на глаз, а не на слух. Меряет она
+		// по своему потоку: без него пик у точки всегда ноль, сколько в микрофон ни говори.
+		_signal = capture ? Meter.Open(row.Device.Id) : null;
+		MeterTrack.Visibility = _signal is null ? Visibility.Collapsed : Visibility.Visible;
+
+		if (_signal is not null)
 		{
 			_meter.Start();
 		}
@@ -346,12 +350,10 @@ public partial class DeviceList : UserControl
 
 	private void ShowPeak()
 	{
-		if (_level is not { } device || Audio.Peak(device.Id) is not { } peak)
+		if (_signal is { } signal)
 		{
-			return;
+			MeterFill.Width = Math.Max(0, MeterTrack.ActualWidth * Math.Clamp(signal.Peak, 0, 1));
 		}
-
-		MeterFill.Width = Math.Max(0, MeterTrack.ActualWidth * Math.Clamp(peak, 0, 1));
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.
@@ -387,6 +389,8 @@ public partial class DeviceList : UserControl
 	private void OnLevelClosed(object sender, EventArgs e)
 	{
 		_meter.Stop();
+		_signal?.Dispose();
+		_signal = null;
 
 		if (_level is { } device)
 		{
