@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -37,6 +37,7 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private string? _shared;
 	private double _volume;
 	private double _peak;
+	private string _peakText = "";
 	private bool _hold;
 	private IReadOnlyList<KnobRow> _knobs = [];
 
@@ -86,6 +87,9 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Пик сигнала в процентах — им растёт полоска под ползунком.</summary>
 	public double Peak { get => _peak; set => Set(ref _peak, value); }
+
+	/// <summary>Тот же пик в децибелах: на слух «тихо» и «нормально» неотличимы.</summary>
+	public string PeakText { get => _peakText; set => Set(ref _peakText, value); }
 
 	/// <summary>Удерживать уровень: правило существует ровно тогда, когда это включено.</summary>
 	public bool Hold { get => _hold; set => Set(ref _hold, value); }

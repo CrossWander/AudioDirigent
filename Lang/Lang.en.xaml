@@ -230,4 +230,5 @@
     <sys:String x:Key="langSensitivity">Sensitivity</sys:String>
     <sys:String x:Key="langRowExpand">Settings for this device</sys:String>
     <sys:String x:Key="langDeviceBare">Nothing beyond the level: this device offers no boost and no automatic gain of its own.</sys:String>
+    <sys:String x:Key="langSignalSilent">silent</sys:String>
 </ResourceDictionary>

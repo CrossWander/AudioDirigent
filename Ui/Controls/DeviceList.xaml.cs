@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -32,6 +32,9 @@ public partial class DeviceList : UserControl
 	private DeviceRow? _open;
 	private Meter? _signal;
 	private bool _filling;
+
+	// Ниже этого уровня шкала уже ничего не различает — там комнатная тишина.
+	private const double Floor = -60;
 
 	public DeviceList()
 	{
@@ -401,10 +404,18 @@ public partial class DeviceList : UserControl
 
 	private void ShowPeak()
 	{
-		if (_open is { } row && _signal is { } signal)
+		if (_open is not { } row || _signal is not { } signal)
 		{
-			row.Peak = Math.Clamp(signal.Peak, 0, 1) * 100;
+			return;
 		}
+
+		// Ухо слышит в децибелах, а точка отдаёт долю от полной шкалы: речь идёт около
+		// 0,1 — линейная полоска показала бы её как тишину. Шкала здесь от -60 dB.
+		var peak = Math.Clamp(signal.Peak, 0, 1);
+		var decibels = peak > 0 ? 20 * Math.Log10(peak) : Floor;
+
+		row.Peak = Math.Clamp(1 - decibels / Floor, 0, 1) * 100;
+		row.PeakText = decibels <= Floor ? Localization.Get("langSignalSilent") : $"{decibels:0} dB";
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.

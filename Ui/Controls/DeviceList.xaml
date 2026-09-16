@@ -96,8 +96,17 @@
                                 </Grid>
 
                                 <!-- Чувствительность на слух не выставить: полоска показывает, где перегруз -->
-                                <ProgressBar x:Name="Signal" Style="{DynamicResource Meter}" Margin="0,2,50,0"
-                                             Value="{Binding Peak}" Visibility="Collapsed"/>
+                                <Grid x:Name="Signal" Margin="0,2,0,0" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ProgressBar Style="{DynamicResource Meter}" VerticalAlignment="Center"
+                                                 Value="{Binding Peak}"/>
+                                    <TextBlock Grid.Column="1" MinWidth="46" TextAlignment="Right"
+                                               VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                               Text="{Binding PeakText}"/>
+                                </Grid>
 
                                 <CheckBox x:Name="HoldToggle" Style="{DynamicResource Toggle}" Margin="0,14,0,0"
                                           Content="{DynamicResource langLevelHold}"

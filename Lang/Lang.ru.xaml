@@ -229,4 +229,5 @@
     <sys:String x:Key="langSensitivity">Чувствительность</sys:String>
     <sys:String x:Key="langRowExpand">Настройки этого устройства</sys:String>
     <sys:String x:Key="langDeviceBare">Кроме уровня — ничего: усиления и автоподстройки у этого устройства нет.</sys:String>
+    <sys:String x:Key="langSignalSilent">тишина</sys:String>
 </ResourceDictionary>
