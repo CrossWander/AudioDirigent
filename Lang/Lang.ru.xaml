@@ -18,7 +18,6 @@
     <sys:String x:Key="langLevelNone">Громкость не закреплена. Нажмите, чтобы задать</sys:String>
     <sys:String x:Key="langLevelPinned">При переключении ставится {0}% по правилу «{1}»</sys:String>
     <sys:String x:Key="langLevelShared">Правило «{0}» действует и на другие устройства с таким именем</sys:String>
-    <sys:String x:Key="langLevelUnpin">Не закреплять</sys:String>
 
     <sys:String x:Key="langMakePriority">В приоритет</sys:String>
     <sys:String x:Key="langMakeBlocked">Запретить</sys:String>
@@ -223,4 +222,8 @@
     <sys:String x:Key="langLogPairFailed">Спарить не удалось: {0}</sys:String>
     <sys:String x:Key="langOk">Хорошо</sys:String>
     <sys:String x:Key="langCancel">Отмена</sys:String>
+    <sys:String x:Key="langLevelHold">Удерживать этот уровень</sys:String>
+    <sys:String x:Key="langLevelHoldHint">Windows и так помнит уровень. Включайте, только если его кто-то сбивает: тогда программа будет возвращать его каждый раз, когда выбирает устройство.</sys:String>
+    <sys:String x:Key="langCliMicLevel">  уровень точки: {0}%</sys:String>
+    <sys:String x:Key="langCliMicNone">  кроме уровня устройство ничего не отдаёт</sys:String>
 </ResourceDictionary>

@@ -126,6 +126,32 @@ Inside:
   network.
 - **Log** — an expander with the switch history, trimmed to the last two days on every start.
 
+### The level chip, and what a microphone will let you change
+
+The chip in each row opens the level for that device. Windows already remembers a level per
+endpoint and restores it itself — the app writes it there and is then out of the way. **Hold
+this level** is the exception, and it is a choice rather than a side effect of touching the
+slider: with it on, the app sets the level back every time it picks the device, for the case
+where something else keeps moving it.
+
+On the Recording side the card carries more, because a microphone has more than one gain
+stage and only the first one belongs to the endpoint:
+
+- a **signal bar** under the slider — sensitivity cannot be set by ear, only by watching
+  where it starts to clip;
+- whatever **the device itself offers**, read out of its topology: a boost in decibels, an
+  automatic-gain switch. Each is labelled with the name its own driver gives it — the same
+  name the Windows sound panel shows — and stepped the way the driver steps it, which for a
+  boost is usually 0 / +10 / +20 / +30 dB.
+
+These are hardware nodes, not endpoint properties, and plenty of devices have none: a
+built-in Realtek input typically has a boost, a USB headset typically has nothing at all.
+What is missing simply does not appear. All of it is written into the device and remembered
+by Windows, so the app is needed while you turn the knob and not afterwards.
+
+`--mic` prints the same thing as a tree, node by node, for when a slider you expected is
+not there.
+
 ### The Bluetooth panel
 
 The Bluetooth mark in the title bar opens the list the radio keeps: every device Windows
@@ -250,7 +276,7 @@ The sources sit in eight places, one namespace for all of them:
 | `Domain/`   | the ideas the app is about: an endpoint, a rule set, a pinned level        |
 | `Audio/`    | the point of the app: the watcher loop, the rules, the volume              |
 | `App/`      | its own housekeeping: the settings file, the journal, the build version    |
-| `Interop/`  | the bindings: Core Audio, Bluetooth over KS, HID and SetupAPI              |
+| `Interop/`  | the bindings: Core Audio, device topology, Bluetooth, HID and SetupAPI     |
 | `Platform/` | what those make the system do: PnP restart, scheduler task, USB power      |
 | `Ui/`       | the window and its parts, the theme, the tray icon, the connection card    |
 | `Lang/`     | language: one dictionary per language, and the code that switches them     |
@@ -379,6 +405,7 @@ the code to `Localization.Codes`.
 | (none)                  | open the window, keep running in the tray                       |
 | `--tray`                | start in the tray without a window — used by autostart           |
 | `--bluetooth [scan]`    | what the radio remembers; `scan` also listens to the air         |
+| `--mic`                 | what each microphone exposes: its level, and the nodes behind it |
 | `--once`                | apply the rule once and exit (console)                          |
 | `--list`                | every device with its state, bus and kind, and the current default |
 | `--test`                | self-check: the rule, the dictionaries, the card, the switching  |

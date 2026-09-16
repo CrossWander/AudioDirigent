@@ -18,7 +18,6 @@
     <sys:String x:Key="langLevelNone">Гучність не закріплена. Натисніть, щоб задати</sys:String>
     <sys:String x:Key="langLevelPinned">При перемиканні ставиться {0}% за правилом «{1}»</sys:String>
     <sys:String x:Key="langLevelShared">Правило «{0}» діє і на інші пристрої з такою назвою</sys:String>
-    <sys:String x:Key="langLevelUnpin">Не закріплювати</sys:String>
 
     <sys:String x:Key="langMakePriority">У пріоритет</sys:String>
     <sys:String x:Key="langMakeBlocked">Заборонити</sys:String>
@@ -223,4 +222,8 @@
     <sys:String x:Key="langLogPairFailed">Спарити не вдалося: {0}</sys:String>
     <sys:String x:Key="langOk">Гаразд</sys:String>
     <sys:String x:Key="langCancel">Скасувати</sys:String>
+    <sys:String x:Key="langLevelHold">Утримувати цей рівень</sys:String>
+    <sys:String x:Key="langLevelHoldHint">Windows і так пам’ятає рівень. Вмикайте, лише якщо його хтось збиває: тоді програма повертатиме його щоразу, коли обирає пристрій.</sys:String>
+    <sys:String x:Key="langCliMicLevel">  рівень точки: {0}%</sys:String>
+    <sys:String x:Key="langCliMicNone">  крім рівня пристрій нічого не віддає</sys:String>
 </ResourceDictionary>

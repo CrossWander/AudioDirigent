@@ -122,6 +122,26 @@ internal interface IAudioEndpointVolume
 	void SetMasterVolumeLevelScalar(float level, IntPtr context);
 	float GetMasterVolumeLevel();
 	float GetMasterVolumeLevelScalar();
+	void NotImpl_SetChannelVolumeLevel();
+	void NotImpl_SetChannelVolumeLevelScalar();
+	void NotImpl_GetChannelVolumeLevel();
+	void NotImpl_GetChannelVolumeLevelScalar();
+	void NotImpl_SetMute();
+	void NotImpl_GetMute();
+	void NotImpl_GetVolumeStepInfo();
+	void NotImpl_VolumeStepUp();
+	void NotImpl_VolumeStepDown();
+	void NotImpl_QueryHardwareSupport();
+
+	// Диапазон нужен, чтобы отличить узел самой точки от железных: у них он совпадает.
+	void GetVolumeRange(out float minimum, out float maximum, out float increment);
+}
+
+/// <summary>Пиковый уровень сигнала — им рисуется полоска под ползунком чувствительности.</summary>
+[ComImport, Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+internal interface IAudioMeterInformation
+{
+	float GetPeakValue();
 }
 
 [ComImport, Guid("F8679F50-850A-41CF-9C72-430F290290C8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -296,6 +316,45 @@ internal static class Audio
 			return Endpoint(deviceId) is { } volume
 				? (int)Math.Round(volume.GetMasterVolumeLevelScalar() * 100)
 				: null;
+		}
+		catch (COMException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>Диапазон громкости точки в децибелах; null — точка исчезла.</summary>
+	public static (float Minimum, float Maximum)? VolumeRange(string deviceId)
+	{
+		try
+		{
+			if (Endpoint(deviceId) is not { } volume)
+			{
+				return null;
+			}
+
+			volume.GetVolumeRange(out var minimum, out var maximum, out _);
+
+			return (minimum, maximum);
+		}
+		catch (COMException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>Пик сигнала, 0…1; null — точка молчит о нём или исчезла.</summary>
+	public static float? Peak(string deviceId)
+	{
+		var iid = typeof(IAudioMeterInformation).GUID;
+		try
+		{
+			var device = CreateEnumerator().GetDevice(deviceId);
+
+			return device.Activate(ref iid, 0 /* CLSCTX_INPROC_SERVER */, IntPtr.Zero, out var raw) == 0
+				&& raw is IAudioMeterInformation meter
+					? meter.GetPeakValue()
+					: null;
 		}
 		catch (COMException)
 		{

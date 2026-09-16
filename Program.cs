@@ -38,6 +38,7 @@ internal static class Program
 			"--test" => SelfCheck,
 			"--devices" => DevicesMode,
 			"--bluetooth" => () => BluetoothMode(args.Skip(1).FirstOrDefault() == "scan"),
+			"--mic" => MicrophoneMode,
 			"--recover" => RecoverMode,
 			"--autostart" => () => AutostartMode(args.Skip(1).FirstOrDefault()),
 			"--help" or "-h" or "/?" => Usage,
@@ -168,6 +169,35 @@ internal static class Program
 			var state = device.Connected ? "connected" : device.Paired ? "paired" : "new";
 			Console.WriteLine($"{device.Pretty}  {state,-9} {device.Class:X6}  " +
 				$"{Localization.Get(device.Kind),-12} {device.Name}");
+		}
+
+		return 0;
+	}
+
+	// Что каждый микрофон даёт крутить помимо уровня. Усиление и автоподстройка — узлы
+	// топологии устройства, и есть они далеко не у всех: разбор показывает, у кого именно.
+	// Дерево узлов печатается как есть — по нему и разбирают, почему ползунка не видно.
+	private static int MicrophoneMode()
+	{
+		foreach (var device in Audio.ListDevices(EDataFlow.Capture, DeviceState.Active))
+		{
+			Console.WriteLine($"{device.Name}  [{device.Bus}]");
+			Console.WriteLine("  " + Localization.Format("langCliMicLevel", Audio.GetVolume(device.Id)));
+
+			var knobs = Microphone.Knobs(device.Id, line => Console.WriteLine($"  {line}"));
+			if (knobs.Count == 0)
+			{
+				Console.WriteLine("  " + Localization.Get("langCliMicNone"));
+			}
+
+			foreach (var knob in knobs)
+			{
+				Console.WriteLine(knob.Kind == MicrophoneKnobKind.Level
+					? $"  gain {knob.Part,-7} {knob.Minimum,7:0.0} .. {knob.Maximum,6:0.0} dB  step {knob.Step,5:0.0}  now {knob.Value,6:0.0}  \"{knob.Name}\""
+					: $"  agc  {knob.Part,-7} {(knob.On ? "on" : "off"),-32}  \"{knob.Name}\"");
+			}
+
+			Console.WriteLine();
 		}
 
 		return 0;
