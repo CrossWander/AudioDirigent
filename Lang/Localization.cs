@@ -62,4 +62,10 @@ internal static class Localization
 
 	public static string Format(string key, params object?[] arguments) =>
 		string.Format(CultureInfo.CurrentCulture, Get(key), arguments);
+
+	/// <summary>Развернуть сообщение, пришедшее снизу, в текст на текущем языке.</summary>
+	public static string Of(Phrase phrase) => Format(phrase.Key, phrase.Arguments);
+
+	/// <summary>Строка журнала со временем — так её показывают и в окне, и в консоли.</summary>
+	public static string Of(LogEntry entry) => $"{entry.Time:HH:mm:ss} {Of(entry.Message)}";
 }

@@ -208,7 +208,7 @@ internal static class Program
 	private static int RecoverMode()
 	{
 		using var switcher = new Switcher();
-		switcher.Logged += entry => Console.WriteLine(entry.Render());
+		switcher.Logged += entry => Console.WriteLine(Localization.Of(entry));
 
 		// Знакомимся с устройствами и сразу спрашиваем, чего не хватает: в отдельном
 		// запуске программа ещё не видела, что было живо до того, как звук пропал.
@@ -243,7 +243,7 @@ internal static class Program
 	private static int OnceMode()
 	{
 		using var switcher = new Switcher();
-		switcher.Logged += entry => Console.WriteLine(entry.Render());
+		switcher.Logged += entry => Console.WriteLine(Localization.Of(entry));
 
 		// Именно Start, а не Apply: без опроса приёмника правило не знает, выключена ли
 		// беспроводная гарнитура, и режим отработал бы иначе, чем программа в трее.
@@ -314,7 +314,8 @@ internal static class Program
 		var written = Journal.Add("langLogBuild", Build.Version);
 		var read = Journal.Recent(1).LastOrDefault();
 
-		return read is not null && read.Key == written.Key && read.Arguments.SequenceEqual(written.Arguments);
+		return read is not null && read.Message.Key == written.Message.Key
+			&& read.Message.Arguments.SequenceEqual(written.Message.Arguments);
 	}
 
 	// Тихое уведомление держится на приватных полях WinForms: сменят тип или имя — звук

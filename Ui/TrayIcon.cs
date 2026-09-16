@@ -78,13 +78,14 @@ internal sealed class TrayIcon : IDisposable
 	// его свойства можно трогать только с того потока, где он создан.
 	private void ShowInTooltip(LogEntry entry) => Application.Current.Dispatcher.BeginInvoke(() =>
 	{
-		var text = $"AudioDirigent — {entry.Render()}";
+		var text = $"AudioDirigent — {Localization.Of(entry)}";
 		_icon.Text = text.Length <= 63 ? text : text[..63];
 
-		if (Store.Current.Notify && _switchKeys.Contains(entry.Key)
-			&& !Balloon.Show(_icon, "AudioDirigent", entry.Text))
+		var said = Localization.Of(entry.Message);
+		if (Store.Current.Notify && _switchKeys.Contains(entry.Message.Key)
+			&& !Balloon.Show(_icon, "AudioDirigent", said))
 		{
-			_icon.ShowBalloonTip(4000, "AudioDirigent", entry.Text, ToolTipIcon.None);
+			_icon.ShowBalloonTip(4000, "AudioDirigent", said, ToolTipIcon.None);
 		}
 	});
 

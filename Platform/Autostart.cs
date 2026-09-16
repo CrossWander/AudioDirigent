@@ -37,10 +37,10 @@ internal static class Autostart
 		}
 	}
 
-	/// <summary>Возвращает текст ошибки либо null при успехе.</summary>
-	public static string? Set(bool enabled) => Set(enabled, Recovery.Elevated);
+	/// <summary>Возвращает сообщение об ошибке либо null при успехе.</summary>
+	public static Phrase? Set(bool enabled) => Set(enabled, Recovery.Elevated);
 
-	private static string? Set(bool enabled, bool elevated)
+	private static Phrase? Set(bool enabled, bool elevated)
 	{
 		// Ранние версии прописывали автозапуск в реестр — убираем хвост, чтобы не стартовало дважды.
 		using (var key = Registry.CurrentUser.OpenSubKey(_legacyRunKey, writable: true))
@@ -53,7 +53,7 @@ internal static class Autostart
 		if (!enabled)
 		{
 			var removed = Shell.Execute("schtasks.exe", "/Delete", "/TN", TaskName, "/F");
-			return removed == 0 || !IsEnabled() ? null : Localization.Format("langErrorSchtasks", "/Delete", removed);
+			return removed == 0 || !IsEnabled() ? null : new Phrase("langErrorSchtasks", "/Delete", removed);
 		}
 
 		// Задача описывается файлом, а не ключами командной строки: schtasks /Create заводит её
@@ -66,11 +66,11 @@ internal static class Autostart
 			File.WriteAllText(file, Describe(elevated), new UnicodeEncoding(bigEndian: false, byteOrderMark: true));
 			var created = Shell.Execute("schtasks.exe", "/Create", "/TN", TaskName, "/XML", file, "/F");
 
-			return created == 0 ? null : Localization.Format("langErrorSchtasks", "/Create", created);
+			return created == 0 ? null : new Phrase("langErrorSchtasks", "/Create", created);
 		}
 		catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
 		{
-			return Localization.Format("langErrorSchtasks", "/Create", exception.Message);
+			return new Phrase("langErrorSchtasks", "/Create", exception.Message);
 		}
 		finally
 		{

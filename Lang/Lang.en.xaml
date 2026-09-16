@@ -10,7 +10,6 @@
     <sys:String x:Key="langWatching">Watching</sys:String>
     <sys:String x:Key="langPausedBadge">Paused</sys:String>
     <sys:String x:Key="langNone">(none)</sys:String>
-    <sys:String x:Key="langNoName">(unnamed)</sys:String>
     <sys:String x:Key="langActiveOf">{0} active of {1}</sys:String>
     <sys:String x:Key="langBadgeBlocked">Blocked by the rule “{0}”: never becomes the default device</sys:String>
     <sys:String x:Key="langBadgePriority">Priority {0} by the rule “{1}”: the lower the number, the sooner the device is picked</sys:String>
@@ -231,4 +230,5 @@
     <sys:String x:Key="langRowExpand">Settings for this device</sys:String>
     <sys:String x:Key="langDeviceBare">Nothing beyond the level: this device offers no boost and no automatic gain of its own.</sys:String>
     <sys:String x:Key="langSignalSilent">silent</sys:String>
+    <sys:String x:Key="langErrorPlain">{0}</sys:String>
 </ResourceDictionary>

@@ -13,12 +13,12 @@ internal static class UsbPower
 {
 	public static bool Enabled => Store.Current.UsbPower;
 
-	/// <summary>Включить или выключить запрет на отключение питания портов. Текст ошибки либо null.</summary>
-	public static string? Set(bool enabled, Action<string, object?[]> log)
+	/// <summary>Включить или выключить запрет на отключение питания портов. Ошибка либо null.</summary>
+	public static Phrase? Set(bool enabled, Action<string, object?[]> log)
 	{
 		if (!Recovery.Elevated)
 		{
-			return Localization.Get("langErrorNeedsAdmin");
+			return new Phrase("langErrorNeedsAdmin");
 		}
 
 		try
@@ -39,7 +39,7 @@ internal static class UsbPower
 			{
 				Remember(on: false, []);
 
-				return Localization.Get("langErrorConfigWrite");
+				return new Phrase("langErrorConfigWrite");
 			}
 
 			if (take.Count > 0)
@@ -52,7 +52,7 @@ internal static class UsbPower
 		}
 		catch (Exception exception)
 		{
-			return exception.Message;
+			return new Phrase("langErrorPlain", exception.Message);
 		}
 	}
 

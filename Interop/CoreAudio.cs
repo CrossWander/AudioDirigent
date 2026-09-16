@@ -270,11 +270,14 @@ internal static class Audio
 			var device = CreateEnumerator().GetDefaultAudioEndpoint(flow, role);
 
 			// Имя есть всегда: устройством по умолчанию безымянный эндпоинт не бывает.
-			// Но если Windows его не отдала, устройство от этого не перестало играть.
+			// Но если Windows его не отдала, устройство от этого не перестало играть, и
+			// показать тогда нечего, кроме самого эндпоинта, — зато сразу видно, кто это.
+			var id = device.GetId();
+
 			return Describe(device, flow)
 				?? new AudioEndpoint(
-					device.GetId(),
-					Localization.Get("langNoName"),
+					id,
+					id,
 					device.GetState(),
 					flow,
 					FormFactor.Unknown,

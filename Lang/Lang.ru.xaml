@@ -9,7 +9,6 @@
     <sys:String x:Key="langWatching">Следит</sys:String>
     <sys:String x:Key="langPausedBadge">Пауза</sys:String>
     <sys:String x:Key="langNone">(нет)</sys:String>
-    <sys:String x:Key="langNoName">(без имени)</sys:String>
     <sys:String x:Key="langActiveOf">{0} активных из {1}</sys:String>
     <sys:String x:Key="langBadgeBlocked">Запрещено правилом «{0}»: основным устройством не станет никогда</sys:String>
     <sys:String x:Key="langBadgePriority">Приоритет {0} по правилу «{1}»: чем меньше номер, тем раньше устройство выбирают</sys:String>
@@ -230,4 +229,5 @@
     <sys:String x:Key="langRowExpand">Настройки этого устройства</sys:String>
     <sys:String x:Key="langDeviceBare">Кроме уровня — ничего: усиления и автоподстройки у этого устройства нет.</sys:String>
     <sys:String x:Key="langSignalSilent">тишина</sys:String>
+    <sys:String x:Key="langErrorPlain">{0}</sys:String>
 </ResourceDictionary>

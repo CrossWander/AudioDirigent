@@ -8,15 +8,10 @@ using System.Text;
 namespace AudioDirigent;
 
 /// <summary>
-/// Запись журнала: хранится ключом с аргументами, текст собирается при показе.
+/// Запись журнала: время и сообщение ключом. Текстом оно становится у того, кто его
+/// показывает, — см. <see cref="Localization.Of(Phrase)"/>.
 /// </summary>
-internal sealed record LogEntry(DateTime Time, string Key, string[] Arguments)
-{
-	/// <summary>Текст записи на языке интерфейса.</summary>
-	public string Text => Localization.Format(Key, Arguments);
-
-	public string Render() => $"{Time:HH:mm:ss} {Text}";
-}
+internal sealed record LogEntry(DateTime Time, Phrase Message);
 
 /// <summary>
 /// Файл журнала рядом с программой. Записи хранятся ключом и аргументами, а не готовым
@@ -40,7 +35,8 @@ internal static class Journal
 	/// </summary>
 	public static LogEntry Add(string key, params object?[] arguments)
 	{
-		var entry = new LogEntry(DateTime.Now, key, [.. arguments.Select(argument => argument?.ToString() ?? "")]);
+		var entry = new LogEntry(DateTime.Now,
+			new Phrase(key, [.. arguments.Select(argument => (object?)(argument?.ToString() ?? ""))]));
 		Append(entry);
 
 		return entry;
@@ -102,7 +98,7 @@ internal static class Journal
 				Trim();
 			}
 
-			var line = string.Join('\t', [entry.Time.ToString(_timeFormat, CultureInfo.InvariantCulture), entry.Key, .. entry.Arguments]);
+			var line = string.Join('\t', [entry.Time.ToString(_timeFormat, CultureInfo.InvariantCulture), entry.Message.Key, .. entry.Message.Arguments]);
 			File.AppendAllText(_path, line + Environment.NewLine, new UTF8Encoding(true));
 		}
 		catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -117,7 +113,7 @@ internal static class Journal
 
 		return parts.Length >= 2
 			&& DateTime.TryParseExact(parts[0], _timeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)
-				? new LogEntry(time, parts[1], [.. parts.Skip(2)])
+				? new LogEntry(time, new Phrase(parts[1], [.. parts.Skip(2)]))
 				: null;
 	}
 }

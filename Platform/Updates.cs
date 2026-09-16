@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -86,14 +86,14 @@ internal static class Updates
 	}
 
 	/// <summary>
-	/// Скачать новую версию и заменить себя ею. Возвращает текст ошибки; при удаче не
+	/// Скачать новую версию и заменить себя ею. Возвращает ошибку; при удаче не
 	/// возвращается вовсе — программа к этому моменту уже закрывается.
 	/// </summary>
-	public static async Task<string?> Install(Release release, Action shutdown)
+	public static async Task<Phrase?> Install(Release release, Action shutdown)
 	{
 		if (release.Download is not { } url || Environment.ProcessPath is not { } self)
 		{
-			return Localization.Get("langUpdateNoAsset");
+			return new Phrase("langUpdateNoAsset");
 		}
 
 		var fresh = self + ".new";
@@ -107,7 +107,7 @@ internal static class Updates
 				// Пустой или подозрительно маленький ответ — это не программа, а страница ошибки.
 				if (bytes.Length < 1_000_000)
 				{
-					return Localization.Get("langUpdateBadDownload");
+					return new Phrase("langUpdateBadDownload");
 				}
 
 				await File.WriteAllBytesAsync(fresh, bytes);
@@ -128,8 +128,8 @@ internal static class Updates
 
 			// Чаще всего это папка, куда писать не дают: программу положили в Program Files.
 			return exception is UnauthorizedAccessException
-				? Localization.Get("langUpdateDenied")
-				: Localization.Format("langUpdateFailedWith", exception.Message);
+				? new Phrase("langUpdateDenied")
+				: new Phrase("langUpdateFailedWith", exception.Message);
 		}
 	}
 

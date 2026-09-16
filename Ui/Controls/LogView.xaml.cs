@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -39,7 +39,7 @@ public partial class LogView : UserControl
 
 	internal void Render()
 	{
-		Text.Text = string.Join(Environment.NewLine, _entries.Select(entry => entry.Render()));
+		Text.Text = string.Join(Environment.NewLine, _entries.Select(Localization.Of));
 		Scroll.ScrollToEnd();
 	}
 

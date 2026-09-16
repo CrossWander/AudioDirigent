@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -72,7 +72,7 @@ public partial class SettingsPanel : UserControl
 
 		if (Autostart.Set(wanted) is { } error)
 		{
-			Warn(error, "langSchedulerTitle");
+			Warn(Localization.Of(error), "langSchedulerTitle");
 			AutostartToggle.IsChecked = Autostart.IsEnabled();
 
 			return;
@@ -97,7 +97,7 @@ public partial class SettingsPanel : UserControl
 
 		if (error is not null)
 		{
-			Warn(error, "langUsbPower");
+			Warn(Localization.Of(error), "langUsbPower");
 		}
 
 		UsbPowerToggle.IsChecked = UsbPower.Enabled;
@@ -162,8 +162,8 @@ public partial class SettingsPanel : UserControl
 		InstallButton.IsEnabled = true;
 		if (error is not null)
 		{
-			UpdateResult.Text = error;
-			_switcher?.Log("langLogUpdateFailed", error);
+			UpdateResult.Text = Localization.Of(error);
+			_switcher?.Log("langLogUpdateFailed", UpdateResult.Text);
 		}
 	}
 
