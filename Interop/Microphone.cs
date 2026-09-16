@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -10,8 +10,9 @@ namespace AudioDirigent;
 /// надо спускаться от точки вниз, к железу.
 /// </summary>
 /// <param name="Name">Как узел называет себя сам — им же подписан ползунок в параметрах Windows.</param>
+/// <param name="Control">Сам узел. Без него каждый шаг ползунка заново обходил бы всю топологию.</param>
 internal sealed record MicrophoneKnob(string Name, MicrophoneKnobKind Kind, uint Part,
-	float Minimum, float Maximum, float Step, float Value, bool On);
+	float Minimum, float Maximum, float Step, float Value, bool On, object Control);
 
 internal enum MicrophoneKnobKind
 {
@@ -39,7 +40,7 @@ internal static class Microphone
 	/// Всё, что устройство даёт крутить. Пустой список — драйвер не отдал ничего, и кроме
 	/// уровня конечной точки у этого микрофона ничего нет.
 	/// </summary>
-	/// <param name="trace">Куда писать ход обхода; нужен разбору из командной строки.</param>
+	/// <param name="endpointId">Конечная точка, от разъёма которой идти вниз, к железу.</param>
 	/// <param name="trace">Куда писать ход обхода; нужен разбору из командной строки.</param>
 	public static List<MicrophoneKnob> Knobs(string endpointId, Action<string>? trace = null)
 	{
@@ -50,12 +51,12 @@ internal static class Microphone
 	}
 
 	/// <summary>Поставить железному узлу уровень в децибелах; false — узел не отозвался.</summary>
-	public static bool SetLevel(string endpointId, uint part, float decibels) =>
-		Apply<IAudioVolumeLevel>(endpointId, part, level => level.SetLevelUniform(decibels, IntPtr.Zero) == 0);
+	public static bool SetLevel(MicrophoneKnob knob, float decibels) =>
+		knob.Control is IAudioVolumeLevel level && level.SetLevelUniform(decibels, IntPtr.Zero) == 0;
 
 	/// <summary>Включить или выключить автоподстройку; false — узел не отозвался.</summary>
-	public static bool SetAutoGain(string endpointId, uint part, bool on) =>
-		Apply<IAudioAutoGainControl>(endpointId, part, gain => gain.SetEnabled(on ? 1 : 0, IntPtr.Zero) == 0);
+	public static bool SetAutoGain(MicrophoneKnob knob, bool on) =>
+		knob.Control is IAudioAutoGainControl gain && gain.SetEnabled(on ? 1 : 0, IntPtr.Zero) == 0;
 
 	/// <summary>
 	/// Уровень самой конечной точки тоже приходит узлом топологии, но правится он отдельно
@@ -78,20 +79,6 @@ internal static class Microphone
 		}
 
 		return knobs;
-	}
-
-	private static bool Apply<T>(string endpointId, uint part, Func<T, bool> action) where T : class
-	{
-		var done = false;
-		Each(endpointId, (candidate, _) =>
-		{
-			if (candidate.GetLocalId(out var local) == 0 && local == part && Activate<T>(candidate) is { } control)
-			{
-				done = action(control);
-			}
-		}, trace: null);
-
-		return done;
 	}
 
 	/// <summary>Пройти по всем узлам на пути сигнала этой точки.</summary>
@@ -180,12 +167,12 @@ internal static class Microphone
 		{
 			level.GetLevelRange(0, out var minimum, out var maximum, out var step);
 			level.GetLevel(0, out var value);
-			found.Add(new MicrophoneKnob(name, MicrophoneKnobKind.Level, local, minimum, maximum, step, value, On: true));
+			found.Add(new MicrophoneKnob(name, MicrophoneKnobKind.Level, local, minimum, maximum, step, value, On: true, level));
 		}
 		else if (subtype == _autoGainNode && Activate<IAudioAutoGainControl>(part) is { } gain)
 		{
 			gain.GetEnabled(out var enabled);
-			found.Add(new MicrophoneKnob(name, MicrophoneKnobKind.AutoGain, local, 0, 0, 0, 0, enabled != 0));
+			found.Add(new MicrophoneKnob(name, MicrophoneKnobKind.AutoGain, local, 0, 0, 0, 0, enabled != 0, gain));
 		}
 	}
 

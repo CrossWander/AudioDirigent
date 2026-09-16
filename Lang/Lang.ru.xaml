@@ -14,7 +14,7 @@
     <sys:String x:Key="langBadgeBlocked">Запрещено правилом «{0}»: основным устройством не станет никогда</sys:String>
     <sys:String x:Key="langBadgePriority">Приоритет {0} по правилу «{1}»: чем меньше номер, тем раньше устройство выбирают</sys:String>
     <sys:String x:Key="langCurrentDevice">Сейчас по умолчанию</sys:String>
-    <sys:String x:Key="langLevelNone">Громкость не закреплена. Нажмите, чтобы задать</sys:String>
+    <sys:String x:Key="langLevelNone">Громкость не закреплена. Раскройте строку, чтобы задать</sys:String>
     <sys:String x:Key="langLevelPinned">При переключении ставится {0}% по правилу «{1}»</sys:String>
     <sys:String x:Key="langLevelShared">Правило «{0}» действует и на другие устройства с таким именем</sys:String>
 
@@ -223,8 +223,8 @@
     <sys:String x:Key="langCancel">Отмена</sys:String>
     <sys:String x:Key="langLevelHold">Удерживать этот уровень</sys:String>
     <sys:String x:Key="langLevelHoldHint">Windows и так помнит уровень. Включайте, только если его кто-то сбивает: тогда программа будет возвращать его каждый раз, когда выбирает устройство.</sys:String>
-    <sys:String x:Key="langCliMicLevel">  уровень точки: {0}%</sys:String>
-    <sys:String x:Key="langCliMicNone">  кроме уровня устройство ничего не отдаёт</sys:String>
+    <sys:String x:Key="langCliMicLevel">уровень точки: {0}%</sys:String>
+    <sys:String x:Key="langCliMicNone">кроме уровня устройство ничего не отдаёт</sys:String>
     <sys:String x:Key="langVolume">Громкость</sys:String>
     <sys:String x:Key="langSensitivity">Чувствительность</sys:String>
     <sys:String x:Key="langRowExpand">Настройки этого устройства</sys:String>

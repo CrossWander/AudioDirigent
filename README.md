@@ -126,9 +126,11 @@ Inside:
   network.
 - **Log** — an expander with the switch history, trimmed to the last two days on every start.
 
-### The level chip, and what a microphone will let you change
+### Opening a device, and what a microphone will let you change
 
-The chip in each row opens the level for that device. Windows already remembers a level per
+A row unfolds under itself — click it, or the chevron at its end. Inside is the level for
+that device, named for what it does: **Volume** on the Playback side, **Sensitivity** on
+Recording. Windows already remembers a level per
 endpoint and restores it itself — the app writes it there and is then out of the way. **Hold
 this level** is the exception, and it is a choice rather than a side effect of touching the
 slider: with it on, the app sets the level back every time it picks the device, for the case
@@ -137,8 +139,10 @@ where something else keeps moving it.
 On the Recording side the card carries more, because a microphone has more than one gain
 stage and only the first one belongs to the endpoint:
 
-- a **signal bar** under the slider — sensitivity cannot be set by ear, only by watching
-  where it starts to clip;
+- a **signal bar** under the slider, scaled in decibels from -60 dB and labelled with the
+  number — sensitivity cannot be set by ear, only by watching where it starts to clip. The
+  app opens a capture stream of its own while the row is open, because an endpoint meter
+  reads zero until something is recording;
 - whatever **the device itself offers**, read out of its topology: a boost in decibels, an
   automatic-gain switch. Each is labelled with the name its own driver gives it — the same
   name the Windows sound panel shows — and stepped the way the driver steps it, which for a

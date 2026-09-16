@@ -13,8 +13,22 @@ namespace AudioDirigent;
 /// Ручка, которую отдало само устройство: ползунок усиления или выключатель автоподстройки.
 /// Подпись берём у драйвера — той же, что стоит в параметрах звука Windows.
 /// </summary>
-internal sealed record KnobRow(string Device, MicrophoneKnob Knob, string Name, bool IsLevel,
-	double Minimum, double Maximum, double Step, bool Snap, double Value, bool On);
+internal sealed record KnobRow(MicrophoneKnob Knob, double Step, bool Snap)
+{
+	public string Name => Knob.Name;
+
+	public bool IsLevel => Knob.Kind == MicrophoneKnobKind.Level;
+
+	public double Minimum => Knob.Minimum;
+
+	public double Maximum => Knob.Maximum;
+
+	// Привязки применяются и при первом показе, и при пересборке строки. Правка — это только
+	// то, что отличается от уже стоящего, а знать это может лишь сама ручка.
+	public double Value { get; set; }
+
+	public bool On { get; set; }
+}
 
 /// <summary>
 /// Список устройств одного направления и всё, что с ними делают. Строки живут дольше одного
@@ -34,7 +48,7 @@ public partial class DeviceList : UserControl
 	private bool _filling;
 
 	// Ниже этого уровня шкала уже ничего не различает — там комнатная тишина.
-	private const double Floor = -60;
+	private const double _floor = -60;
 
 	public DeviceList()
 	{
@@ -71,7 +85,7 @@ public partial class DeviceList : UserControl
 		_filling = false;
 
 		// Раскрытое устройство могло и пропасть — тогда отпускаем и поток с него.
-		if (_open is { } open && !_rows.Contains(open))
+		if (_open is { } open && (!_rows.Contains(open) || open.Device.State != DeviceState.Active))
 		{
 			Close();
 		}
@@ -212,10 +226,19 @@ public partial class DeviceList : UserControl
 	// Шеврон делает то же самое: он нужен, чтобы раскрытие было видно, а не угадывалось.
 	private void OnChevron(object sender, RoutedEventArgs e)
 	{
-		if ((sender as FrameworkElement)?.DataContext is DeviceRow row)
+		if ((sender as FrameworkElement)?.DataContext is not DeviceRow row)
 		{
-			Expand(row.Expanded ? null : row);
+			return;
 		}
+
+		// Кнопка гасит щелчок, и список выделения не меняет: кнопки под списком остались
+		// бы на прежнем устройстве, а открытым было бы это.
+		_filling = true;
+		Rows.SelectedItem = row;
+		_filling = false;
+
+		Expand(row.Expanded ? null : row);
+		UpdateActions();
 	}
 
 	private void OnFlowChecked(object sender, RoutedEventArgs e)
@@ -389,17 +412,14 @@ public partial class DeviceList : UserControl
 	private static List<KnobRow> Read(AudioEndpoint device) =>
 	[
 		.. Microphone.Knobs(device.Id).Select(knob => new KnobRow(
-			Device: device.Id,
 			Knob: knob,
-			Name: knob.Name,
-			IsLevel: knob.Kind == MicrophoneKnobKind.Level,
-			Minimum: knob.Minimum,
-			Maximum: knob.Maximum,
 			// Шаг ноль означает плавный ход: делений у такого ползунка нет.
 			Step: knob.Step > 0 ? knob.Step : 1,
-			Snap: knob.Step > 0,
-			Value: knob.Value,
-			On: knob.On))
+			Snap: knob.Step > 0)
+		{
+			Value = knob.Value,
+			On = knob.On,
+		})
 	];
 
 	private void ShowPeak()
@@ -412,10 +432,12 @@ public partial class DeviceList : UserControl
 		// Ухо слышит в децибелах, а точка отдаёт долю от полной шкалы: речь идёт около
 		// 0,1 — линейная полоска показала бы её как тишину. Шкала здесь от -60 dB.
 		var peak = Math.Clamp(signal.Peak, 0, 1);
-		var decibels = peak > 0 ? 20 * Math.Log10(peak) : Floor;
+		var decibels = peak > 0 ? 20 * Math.Log10(peak) : _floor;
 
-		row.Peak = Math.Clamp(1 - decibels / Floor, 0, 1) * 100;
-		row.PeakText = decibels <= Floor ? Localization.Get("langSignalSilent") : $"{decibels:0} dB";
+		row.Peak = Math.Clamp(1 - decibels / _floor, 0, 1) * 100;
+		row.PeakText = decibels <= _floor
+			? Localization.Get("langSignalSilent")
+			: $"{(int)Math.Round(decibels)} dB";
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.
@@ -423,6 +445,7 @@ public partial class DeviceList : UserControl
 	{
 		if ((sender as FrameworkElement)?.DataContext is DeviceRow row && row.Expanded)
 		{
+			row.Volume = e.NewValue;
 			Audio.SetVolume(row.Device.Id, (int)e.NewValue);
 		}
 	}
@@ -432,6 +455,13 @@ public partial class DeviceList : UserControl
 	private void OnHoldChanged(object sender, RoutedEventArgs e)
 	{
 		if (sender is not CheckBox box || box.DataContext is not DeviceRow row || !row.Expanded)
+		{
+			return;
+		}
+
+		// Строку пересобирают и прокрутка, и перестановка — привязка нажмёт галочку заново.
+		// Правило от этого рождаться не должно, да и Refill отсюда ушёл бы внутрь разметки.
+		if ((box.IsChecked == true) == (Volume.For(row.Device) is not null))
 		{
 			return;
 		}
@@ -452,20 +482,27 @@ public partial class DeviceList : UserControl
 	private void OnKnobChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 	{
 		// Ручки рождаются уже со своими значениями: первый ход ползунка — это не правка.
-		if (_open is { Expanded: true } && (sender as FrameworkElement)?.DataContext is KnobRow row)
+		if ((sender as FrameworkElement)?.DataContext is not KnobRow row
+			|| Math.Abs(e.NewValue - row.Value) < 0.001)
 		{
-			Microphone.SetLevel(row.Device, row.Knob.Part, (float)e.NewValue);
+			return;
 		}
+
+		row.Value = e.NewValue;
+		Microphone.SetLevel(row.Knob, (float)e.NewValue);
 	}
 
 	private void OnKnobToggled(object sender, RoutedEventArgs e)
 	{
-		if (_open is { Expanded: true } && sender is CheckBox { DataContext: KnobRow row } box)
+		if (sender is not CheckBox { DataContext: KnobRow row } box || (box.IsChecked == true) == row.On)
 		{
-			Microphone.SetAutoGain(row.Device, row.Knob.Part, box.IsChecked == true);
+			return;
 		}
+
+		row.On = box.IsChecked == true;
+		Microphone.SetAutoGain(row.Knob, row.On);
 	}
 
 	/// <summary>Окно уходит в трей — поток с микрофона надо отпустить.</summary>
-	internal void CloseLevel() => Close();
+	internal void Collapse() => Close();
 }

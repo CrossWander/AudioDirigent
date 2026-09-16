@@ -15,7 +15,7 @@
     <sys:String x:Key="langBadgeBlocked">Blocked by the rule “{0}”: never becomes the default device</sys:String>
     <sys:String x:Key="langBadgePriority">Priority {0} by the rule “{1}”: the lower the number, the sooner the device is picked</sys:String>
     <sys:String x:Key="langCurrentDevice">Current default</sys:String>
-    <sys:String x:Key="langLevelNone">No level pinned. Click to set one</sys:String>
+    <sys:String x:Key="langLevelNone">No level pinned. Open the row to set one</sys:String>
     <sys:String x:Key="langLevelPinned">Set to {0}% on switch, by the rule “{1}”</sys:String>
     <sys:String x:Key="langLevelShared">The rule “{0}” covers other devices with that name too</sys:String>
 
@@ -224,8 +224,8 @@
     <sys:String x:Key="langCancel">Cancel</sys:String>
     <sys:String x:Key="langLevelHold">Hold this level</sys:String>
     <sys:String x:Key="langLevelHoldHint">Windows remembers the level on its own. Turn this on only if something keeps moving it — the app will then set it back every time it picks the device.</sys:String>
-    <sys:String x:Key="langCliMicLevel">  endpoint level: {0}%</sys:String>
-    <sys:String x:Key="langCliMicNone">  the device offers nothing beyond the level</sys:String>
+    <sys:String x:Key="langCliMicLevel">endpoint level: {0}%</sys:String>
+    <sys:String x:Key="langCliMicNone">the device offers nothing beyond the level</sys:String>
     <sys:String x:Key="langVolume">Volume</sys:String>
     <sys:String x:Key="langSensitivity">Sensitivity</sys:String>
     <sys:String x:Key="langRowExpand">Settings for this device</sys:String>
