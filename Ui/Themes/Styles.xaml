@@ -144,6 +144,41 @@
         </Setter>
     </Style>
 
+    <!-- Строка меню: подпись слева, подсветка во всю ширину -->
+    <Style x:Key="MenuRow" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="12,9"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Chrome" Background="Transparent" CornerRadius="7"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Selected}"/>
+                        </Trigger>
+                        <!-- Последним: недоступный пункт не подсвечивается и под курсором.
+                             Гасим его прозрачностью, а не цветом: подпись внутри кнопки
+                             рисует не она сама, и до чужого текста цвету не дотянуться. -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                            <Setter TargetName="Chrome" Property="Background" Value="Transparent"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Переключатель: подпись слева, ползунок справа у края строки настроек -->
     <Style x:Key="Toggle" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>

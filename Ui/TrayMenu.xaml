@@ -1,0 +1,27 @@
+<Window x:Class="AudioDirigent.TrayMenu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AudioDirigent"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" ResizeMode="NoResize" Topmost="True"
+        SizeToContent="WidthAndHeight"
+        FontFamily="Segoe UI Variable Display, Segoe UI"
+        TextOptions.TextFormattingMode="Ideal"
+        UseLayoutRounding="True">
+
+    <!-- Внешние поля — место для тени: окно прозрачное, и тень рисуется внутри него -->
+    <Border Style="{DynamicResource Group}" CornerRadius="10" Padding="6" Margin="12" MinWidth="208">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="4" Direction="270"
+                              Opacity="{DynamicResource CardShadowOpacity}"/>
+        </Border.Effect>
+
+        <StackPanel>
+            <Button x:Name="OpenItem" Style="{DynamicResource MenuRow}" FontWeight="SemiBold" Click="OnOpen"/>
+            <Button x:Name="PauseItem" Style="{DynamicResource MenuRow}" Click="OnPause"/>
+            <Button x:Name="RecoverItem" Style="{DynamicResource MenuRow}" Click="OnRecover"/>
+            <Border Height="1" Background="{DynamicResource Line}" Margin="10,5"/>
+            <Button x:Name="ExitItem" Style="{DynamicResource MenuRow}" Click="OnExit"/>
+        </StackPanel>
+    </Border>
+</Window>
