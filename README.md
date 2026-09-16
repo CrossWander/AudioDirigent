@@ -417,6 +417,51 @@ the code to `Localization.Codes`.
 | `--recover`             | bring vanished devices back                                      |
 | `--autostart [on\|off]` | query, create or remove the scheduler task                       |
 
+## On the shelf
+
+Two ideas were taken apart and set aside rather than dropped. Both are about the one call
+the whole app rests on — `IPolicyConfig::SetDefaultEndpoint` — and both are written down
+here because the reasoning is the valuable part, not the verdict.
+
+### A second way to change the system default
+
+Windows has never published an API for this, so the fallback would have to be another
+undocumented one: the older `IPolicyConfig` IID from Vista, `568b9108-…`, whose vtable
+differs from the one in use. Then the app could pick a path automatically, fall back when
+one fails, and offer a manual override in the settings for the case where something is
+wrong and you need to see which path is at fault.
+
+Not built, and probably not worth building. The interface has been stable since Windows 7,
+every tool that switches audio uses it, and the day Microsoft removes it the alternatives
+go with it — a fallback that shares the fate of the thing it guards against is not a
+fallback. What survives from this idea is smaller and already useful: everything that
+changes audio state should go through one place, so that the day a second mechanism is
+worth having, it is one file and not a search through the UI.
+
+### An output device per application
+
+The internal WinRT class `Windows.Media.Internal.AudioPolicyConfig` reaches
+`SetPersistedDefaultAudioEndpoint(processId, flow, role, deviceId)` — a browser into the
+speakers while a game stays in the headset. It needs no WinRT target framework and no
+projection: `RoGetActivationFactory` is one P/Invoke, so the six megabytes argued against
+above are not the cost here. The interface comes in build-dependent variants —
+`2a59116d-…` before 21H2, `ab3d4648-…` from build 21390 — which is the real price: a table
+of GUIDs to keep current.
+
+This is the one worth doing, and it is a feature rather than a mode: a screen, a rule per
+application, and something watching processes start. It answers the same question the app
+already asks — which device did you actually mean — for the case where the answer differs
+per program.
+
+### Not the registry
+
+The system default does live in the registry, under `HKLM\…\MMDevices\Audio\Render`, as a
+role marker and a timestamp per endpoint, newest winning. Writing there needs
+administrator rights against keys owned by TrustedInstaller, and nothing reads the change
+until `AudioEndpointBuilder` restarts, which drops audio for every running program for a
+second or two. A portable app that asks for no rights should not be able to knock the audio
+service over to do what a COM call does instantly.
+
 ## Similar projects
 
 All of them change the default device through the same `IPolicyConfig`:
