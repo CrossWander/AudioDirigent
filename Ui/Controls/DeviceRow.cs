@@ -38,6 +38,9 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private double _volume;
 	private double _peak;
 	private string _peakText = "";
+	private bool _testing;
+	private string _verdict = "";
+	private bool? _verdictGood;
 	private bool _hold;
 	private IReadOnlyList<KnobRow> _knobs = [];
 
@@ -90,6 +93,15 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Тот же пик в децибелах: на слух «тихо» и «нормально» неотличимы.</summary>
 	public string PeakText { get => _peakText; set => Set(ref _peakText, value); }
+
+	/// <summary>Идёт проверка: кнопку на это время надо погасить.</summary>
+	public bool Testing { get => _testing; set => Set(ref _testing, value); }
+
+	/// <summary>Что показала проверка. Пусто — её ещё не запускали.</summary>
+	public string Verdict { get => _verdict; set => Set(ref _verdict, value); }
+
+	/// <summary>Приговор хороший, плохой или никакой: им красится строка.</summary>
+	public bool? VerdictGood { get => _verdictGood; set => Set(ref _verdictGood, value); }
 
 	/// <summary>Удерживать уровень: правило существует ровно тогда, когда это включено.</summary>
 	public bool Hold { get => _hold; set => Set(ref _hold, value); }

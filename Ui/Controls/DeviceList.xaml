@@ -108,6 +108,16 @@
                                                Text="{Binding PeakText}"/>
                                 </Grid>
 
+                                <!-- Число в децибелах само по себе ничего не говорит: нужен приговор -->
+                                <StackPanel x:Name="Check" Orientation="Horizontal" Margin="0,10,0,0"
+                                            Visibility="Collapsed">
+                                    <Button x:Name="CheckButton" Style="{DynamicResource Flat}"
+                                            Content="{DynamicResource langCheckMic}" Click="OnCheck"/>
+                                    <TextBlock x:Name="Verdict" Text="{Binding Verdict}" Margin="12,0,52,0"
+                                               VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+
                                 <CheckBox x:Name="HoldToggle" Style="{DynamicResource Toggle}" Margin="0,14,0,0"
                                           Content="{DynamicResource langLevelHold}"
                                           IsChecked="{Binding Hold, Mode=OneWay}"
@@ -193,6 +203,16 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Capture}" Value="True">
                                 <Setter TargetName="Signal" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Testing}" Value="True">
+                                <Setter TargetName="CheckButton" Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding VerdictGood}" Value="True">
+                                <Setter TargetName="Verdict" Property="Foreground" Value="{DynamicResource Good}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding VerdictGood}" Value="False">
+                                <Setter TargetName="Verdict" Property="Foreground" Value="{DynamicResource Warn}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Bare}" Value="True">
                                 <Setter TargetName="BareNote" Property="Visibility" Value="Visible"/>

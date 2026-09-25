@@ -47,8 +47,21 @@ public partial class DeviceList : UserControl
 	private Meter? _signal;
 	private bool _filling;
 
+	// Проверка: докуда слушаем и что самое громкое услышали.
+	private DateTime _until;
+	private double _loudest;
+
 	// Ниже этого уровня шкала уже ничего не различает — там комнатная тишина.
 	private const double _floor = -60;
+
+	// Пороги приговора по пику речи. Ниже -50 dB нет и речи — там только шум комнаты;
+	// выше -2 сигнал упирается в предел шкалы и начинает трещать.
+	private const double _nothing = -50;
+	private const double _quiet = -30;
+	private const double _clipping = -2;
+
+	// Пять секунд: меньше — не успеешь сказать фразу, больше — стоишь и ждёшь.
+	private static readonly TimeSpan _listen = TimeSpan.FromSeconds(5);
 
 	public DeviceList()
 	{
@@ -366,8 +379,8 @@ public partial class DeviceList : UserControl
 		Fill(row);
 		row.Expanded = true;
 
-		// Полоска меряет по своему потоку: без него пик у точки всегда ноль, сколько
-		// в микрофон ни говори. Windows в своей панели звука открывает его ровно за этим.
+		// Мерить можно только то, что идёт: пока с микрофона никто не пишет, потока нет,
+		// и полоске нечего показывать. Windows в своей панели звука открывает его за тем же.
 		if (row.Capture)
 		{
 			_signal = Endpoints.Signal(row.Device);
@@ -380,6 +393,7 @@ public partial class DeviceList : UserControl
 		_meter.Stop();
 		_signal?.Dispose();
 		_signal = null;
+		_until = default;
 
 		if (_open is { } row)
 		{
@@ -399,6 +413,11 @@ public partial class DeviceList : UserControl
 		row.Volume = Endpoints.Level(device) ?? pinned?.Percent ?? 50;
 		row.Hold = pinned is not null;
 		row.Peak = 0;
+
+		// Приговор относится к тому разу, когда его выносили: другое устройство — заново.
+		row.Testing = false;
+		row.Verdict = "";
+		row.VerdictGood = null;
 
 		// Правило ловит по куску имени и может накрыть соседей — об этом надо сказать.
 		row.Shared = pinned is not null && pinned.Match != device.Name
@@ -438,6 +457,62 @@ public partial class DeviceList : UserControl
 		row.PeakText = decibels <= _floor
 			? Localization.Get("langSignalSilent")
 			: $"{(int)Math.Round(decibels)} dB";
+
+		if (_until != default)
+		{
+			Listen(row, decibels);
+		}
+	}
+
+	// Проверка слушает несколько секунд и запоминает самое громкое: по одному мгновению
+	// не скажешь ничего — человек между словами молчит, и любой замер попал бы в паузу.
+	private void Listen(DeviceRow row, double decibels)
+	{
+		_loudest = Math.Max(_loudest, decibels);
+
+		if (DateTime.UtcNow < _until)
+		{
+			return;
+		}
+
+		_until = default;
+		row.Testing = false;
+		Judge(row, _loudest);
+	}
+
+	private void Judge(DeviceRow row, double loudest)
+	{
+		var level = (int)Math.Round(loudest);
+
+		(row.Verdict, row.VerdictGood) = loudest switch
+		{
+			<= _nothing => (Localization.Get("langCheckNothing"), false),
+			< _quiet => (Localization.Format("langCheckQuiet", level), false),
+			> _clipping => (Localization.Format("langCheckLoud", level), false),
+			_ => (Localization.Format("langCheckGood", level), true),
+		};
+
+		// Сигнал может быть отличным, а писаться будет не отсюда: ровно этим и кончилась
+		// первая попытка починить микрофон — говорили в гарнитуру, писался ноутбук.
+		if (row.VerdictGood == true && Endpoints.Current(EDataFlow.Capture)?.Id != row.Device.Id)
+		{
+			row.Verdict += " " + Localization.Get("langCheckNotDefault");
+			row.VerdictGood = false;
+		}
+	}
+
+	private void OnCheck(object sender, RoutedEventArgs e)
+	{
+		if ((sender as FrameworkElement)?.DataContext is not DeviceRow row || _signal is null)
+		{
+			return;
+		}
+
+		_loudest = _floor;
+		_until = DateTime.UtcNow + _listen;
+		row.Testing = true;
+		row.VerdictGood = null;
+		row.Verdict = Localization.Get("langCheckSpeak");
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.

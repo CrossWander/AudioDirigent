@@ -230,4 +230,11 @@
     <sys:String x:Key="langDeviceBare">Кроме уровня — ничего: усиления и автоподстройки у этого устройства нет.</sys:String>
     <sys:String x:Key="langSignalSilent">тишина</sys:String>
     <sys:String x:Key="langErrorPlain">{0}</sys:String>
+    <sys:String x:Key="langCheckMic">Проверить микрофон</sys:String>
+    <sys:String x:Key="langCheckSpeak">Говорите…</sys:String>
+    <sys:String x:Key="langCheckGood">Норма: пики {0} dB.</sys:String>
+    <sys:String x:Key="langCheckQuiet">Тихо: всего {0} dB. Поднимите усиление или придвиньте микрофон.</sys:String>
+    <sys:String x:Key="langCheckLoud">Перегруз: {0} dB, сигнал упирается в предел и будет трещать. Убавьте усиление.</sys:String>
+    <sys:String x:Key="langCheckNothing">Сигнала нет вовсе. Проверьте, не выключен ли микрофон и до конца ли он вставлен.</sys:String>
+    <sys:String x:Key="langCheckNotDefault">Но записывается не отсюда: это устройство не выбрано основным.</sys:String>
 </ResourceDictionary>
