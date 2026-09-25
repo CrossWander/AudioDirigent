@@ -137,13 +137,6 @@ internal interface IAudioEndpointVolume
 	void GetVolumeRange(out float minimum, out float maximum, out float increment);
 }
 
-/// <summary>Пиковый уровень сигнала — им рисуется полоска под ползунком чувствительности.</summary>
-[ComImport, Guid("C02216F6-8C67-4B5B-9D00-D008E73E0064"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IAudioMeterInformation
-{
-	float GetPeakValue();
-}
-
 [ComImport, Guid("F8679F50-850A-41CF-9C72-430F290290C8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 internal interface IPolicyConfig
 {

@@ -4,26 +4,34 @@ using System.Runtime.InteropServices;
 namespace AudioDirigent;
 
 /// <summary>
-/// Измеритель сигнала микрофона. Сам по себе пиковый уровень конечной точки всегда ноль:
-/// Windows считает его по идущему через точку потоку, а пока с микрофона никто не пишет,
-/// потока нет. Поэтому измеритель открывает свой — ровно за этим его открывает и панель
-/// звука Windows, когда показывает бегущую полоску.
+/// Измеритель сигнала микрофона. Пока с микрофона никто не пишет, мерить нечего, поэтому
+/// измеритель открывает свой поток — ровно за этим его открывает и панель звука Windows,
+/// когда показывает бегущую полоску.
+///
+/// Пик считается по самим отсчётам, а не спрашивается у точки. Счётчик точки
+/// (IAudioMeterInformation) стоит в топологии до узла усиления и на замерах занижал ровно
+/// на его величину: у гарнитуры с усилением +30 dB речь на -15 dBFS он показывал как -55,
+/// то есть как тишину. Чем сильнее поднимали усиление, тем сильнее он врал.
 /// </summary>
 internal sealed class Meter : IDisposable
 {
 	private const int _shared = 0;
+	// AUDCLNT_BUFFERFLAGS_SILENT: буфер отдали незаполненным, в нём мусор, а не тишина.
+	private const uint _silent = 0x2;
 	// Буфера на пятую долю секунды хватает: его успевают вычерпать между показами полоски.
 	private const long _buffer = 2_000_000;
 
 	private readonly IAudioClient _client;
 	private readonly IAudioCaptureClient _capture;
-	private readonly IAudioMeterInformation _meter;
+	private readonly int _channels;
 
-	private Meter(IAudioClient client, IAudioCaptureClient capture, IAudioMeterInformation meter)
+	private float _loudest;
+
+	private Meter(IAudioClient client, IAudioCaptureClient capture, int channels)
 	{
 		_client = client;
 		_capture = capture;
-		_meter = meter;
+		_channels = channels;
 	}
 
 	/// <summary>Открыть поток и начать мерить; null — устройство не дало.</summary>
@@ -33,8 +41,14 @@ internal sealed class Meter : IDisposable
 		try
 		{
 			if (Audio.Activate<IAudioClient>(endpointId, Audio.ClsCtxAll) is not { } client
-				|| Audio.Activate<IAudioMeterInformation>(endpointId, Audio.ClsCtxAll) is not { } meter
 				|| client.GetMixFormat(out format) != 0)
+			{
+				return null;
+			}
+
+			// Смесь общего режима Windows отдаёт 32-битной с плавающей точкой всегда. Если
+			// вдруг нет — мерить нечем, и лучше не показать полоску, чем показать ложь.
+			if (Marshal.ReadInt16(format, 14) != 32)
 			{
 				return null;
 			}
@@ -53,7 +67,7 @@ internal sealed class Meter : IDisposable
 				return null;
 			}
 
-			return new Meter(client, capture, meter);
+			return new Meter(client, capture, Marshal.ReadInt16(format, 2));
 		}
 		catch (COMException)
 		{
@@ -70,7 +84,7 @@ internal sealed class Meter : IDisposable
 		}
 	}
 
-	/// <summary>Пик сигнала, 0…1.</summary>
+	/// <summary>Самый громкий отсчёт с прошлого опроса, 0…1.</summary>
 	public float Peak
 	{
 		get
@@ -78,27 +92,50 @@ internal sealed class Meter : IDisposable
 			try
 			{
 				Drain();
-
-				return _meter.GetPeakValue();
 			}
 			catch (COMException)
 			{
 				return 0;
 			}
+
+			var peak = _loudest;
+			_loudest = 0;
+
+			return peak;
 		}
 	}
 
-	// Записанное нам не нужно, но не вычерпав его, мы переполним буфер и поток встанет.
+	// Вычерпывать надо в любом случае: не вычерпав, мы переполним буфер и поток встанет.
+	// Заодно и меряем — отсчёты уже в руках, и это честнее, чем спрашивать число у точки.
 	private void Drain()
 	{
 		while (_capture.GetNextPacketSize(out var frames) == 0 && frames > 0)
 		{
-			if (_capture.GetBuffer(out _, out var taken, out _, out _, out _) != 0)
+			if (_capture.GetBuffer(out var data, out var taken, out var flags, out _, out _) != 0)
 			{
 				return;
 			}
 
+			// Флаг тишины означает, что буфер не заполняли вовсе: читать его нельзя.
+			if ((flags & _silent) == 0 && data != IntPtr.Zero)
+			{
+				Look(data, (int)taken * _channels);
+			}
+
 			_capture.ReleaseBuffer(taken);
+		}
+	}
+
+	private unsafe void Look(IntPtr data, int count)
+	{
+		var sample = (float*)data;
+		for (var i = 0; i < count; i++)
+		{
+			var value = Math.Abs(sample[i]);
+			if (value > _loudest)
+			{
+				_loudest = value;
+			}
 		}
 	}
 
@@ -114,7 +151,6 @@ internal sealed class Meter : IDisposable
 		}
 
 		Marshal.ReleaseComObject(_capture);
-		Marshal.ReleaseComObject(_meter);
 		Marshal.ReleaseComObject(_client);
 	}
 
