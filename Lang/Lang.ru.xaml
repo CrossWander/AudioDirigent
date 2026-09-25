@@ -237,4 +237,7 @@
     <sys:String x:Key="langCheckLoud">Перегруз: {0} dB, сигнал упирается в предел и будет трещать. Убавьте усиление.</sys:String>
     <sys:String x:Key="langCheckNothing">Сигнала нет вовсе. Проверьте, не выключен ли микрофон и до конца ли он вставлен.</sys:String>
     <sys:String x:Key="langCheckNotDefault">Записывается при этом не отсюда: это устройство не выбрано основным.</sys:String>
+    <sys:String x:Key="langCliMicMute">выключен: {0}</sys:String>
+    <sys:String x:Key="langYes">да</sys:String>
+    <sys:String x:Key="langNo">нет</sys:String>
 </ResourceDictionary>

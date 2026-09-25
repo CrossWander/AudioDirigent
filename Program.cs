@@ -183,6 +183,8 @@ internal static class Program
 		{
 			Console.WriteLine($"{device.Name}  [{device.Bus}]");
 			Console.WriteLine("  " + Localization.Format("langCliMicLevel", Audio.GetVolume(device.Id)));
+			Console.WriteLine("  " + Localization.Format("langCliMicMute",
+				Localization.Get(Audio.IsMuted(device.Id) == true ? "langYes" : "langNo")));
 
 			var knobs = Microphone.Knobs(device.Id, line => Console.WriteLine($"  {line}"));
 			if (knobs.Count == 0)

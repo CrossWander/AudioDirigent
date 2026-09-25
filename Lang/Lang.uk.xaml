@@ -237,4 +237,7 @@
     <sys:String x:Key="langCheckLoud">Перевантаження: {0} dB, сигнал упирається в межу і буде тріщати. Зменште підсилення.</sys:String>
     <sys:String x:Key="langCheckNothing">Сигналу немає зовсім. Перевірте, чи не вимкнено мікрофон і чи до кінця він уставлений.</sys:String>
     <sys:String x:Key="langCheckNotDefault">Записується при цьому не звідси: цей пристрій не вибрано основним.</sys:String>
+    <sys:String x:Key="langCliMicMute">вимкнено: {0}</sys:String>
+    <sys:String x:Key="langYes">так</sys:String>
+    <sys:String x:Key="langNo">ні</sys:String>
 </ResourceDictionary>

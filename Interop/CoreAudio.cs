@@ -126,8 +126,11 @@ internal interface IAudioEndpointVolume
 	void NotImpl_SetChannelVolumeLevelScalar();
 	void NotImpl_GetChannelVolumeLevel();
 	void NotImpl_GetChannelVolumeLevelScalar();
-	void NotImpl_SetMute();
-	void NotImpl_GetMute();
+	void SetMute(int mute, IntPtr context);
+
+	// Выключенный микрофон выглядит точно как исправный и молчащий. Не спросив об этом,
+	// «почему тихо» от «почему ничего» не отличить.
+	void GetMute(out int mute);
 	void NotImpl_GetVolumeStepInfo();
 	void NotImpl_VolumeStepUp();
 	void NotImpl_VolumeStepDown();
@@ -316,6 +319,46 @@ internal static class Audio
 		catch (COMException)
 		{
 			return null;
+		}
+	}
+
+	/// <summary>Выключено ли устройство; null — точка не отозвалась.</summary>
+	public static bool? IsMuted(string deviceId)
+	{
+		try
+		{
+			if (Endpoint(deviceId) is not { } volume)
+			{
+				return null;
+			}
+
+			volume.GetMute(out var mute);
+
+			return mute != 0;
+		}
+		catch (COMException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>Включить или выключить устройство; false — точка не отозвалась.</summary>
+	public static bool SetMuted(string deviceId, bool mute)
+	{
+		try
+		{
+			if (Endpoint(deviceId) is not { } volume)
+			{
+				return false;
+			}
+
+			volume.SetMute(mute ? 1 : 0, IntPtr.Zero);
+
+			return true;
+		}
+		catch (COMException)
+		{
+			return false;
 		}
 	}
 
