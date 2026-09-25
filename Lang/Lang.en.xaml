@@ -237,5 +237,5 @@
     <sys:String x:Key="langCheckQuiet">Quiet: only {0} dB. Raise the gain, or move the microphone closer.</sys:String>
     <sys:String x:Key="langCheckLoud">Too loud: {0} dB, the signal is hitting the ceiling and will crackle. Lower the gain.</sys:String>
     <sys:String x:Key="langCheckNothing">No signal at all. Check that the microphone is not muted and is pushed all the way in.</sys:String>
-    <sys:String x:Key="langCheckNotDefault">But nothing records from here: this device is not the default one.</sys:String>
+    <sys:String x:Key="langCheckNotDefault">Nothing records from here, though: this device is not the default one.</sys:String>
 </ResourceDictionary>

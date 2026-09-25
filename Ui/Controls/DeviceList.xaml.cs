@@ -494,7 +494,7 @@ public partial class DeviceList : UserControl
 
 		// Сигнал может быть отличным, а писаться будет не отсюда: ровно этим и кончилась
 		// первая попытка починить микрофон — говорили в гарнитуру, писался ноутбук.
-		if (row.VerdictGood == true && Endpoints.Current(EDataFlow.Capture)?.Id != row.Device.Id)
+		if (Endpoints.Current(EDataFlow.Capture)?.Id != row.Device.Id)
 		{
 			row.Verdict += " " + Localization.Get("langCheckNotDefault");
 			row.VerdictGood = false;
