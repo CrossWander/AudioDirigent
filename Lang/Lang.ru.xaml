@@ -240,4 +240,5 @@
     <sys:String x:Key="langCliMicMute">выключен: {0}</sys:String>
     <sys:String x:Key="langYes">да</sys:String>
     <sys:String x:Key="langNo">нет</sys:String>
+    <sys:String x:Key="langCheckQuietBare">Тихо: всего {0} dB, а своего усиления у этого устройства нет. Придвиньте микрофон ближе ко рту.</sys:String>
 </ResourceDictionary>

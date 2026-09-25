@@ -487,7 +487,9 @@ public partial class DeviceList : UserControl
 		(row.Verdict, row.VerdictGood) = loudest switch
 		{
 			<= _nothing => (Localization.Get("langCheckNothing"), false),
-			< _quiet => (Localization.Format("langCheckQuiet", level), false),
+			// Совет поднять усиление бесполезен там, где его нет: у такого устройства
+			// остаётся только само расстояние до рта.
+			< _quiet => (Localization.Format(row.Bare ? "langCheckQuietBare" : "langCheckQuiet", level), false),
 			> _clipping => (Localization.Format("langCheckLoud", level), false),
 			_ => (Localization.Format("langCheckGood", level), true),
 		};

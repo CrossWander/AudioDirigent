@@ -241,4 +241,5 @@
     <sys:String x:Key="langCliMicMute">muted: {0}</sys:String>
     <sys:String x:Key="langYes">yes</sys:String>
     <sys:String x:Key="langNo">no</sys:String>
+    <sys:String x:Key="langCheckQuietBare">Quiet: only {0} dB, and this device has no gain of its own. Move the microphone closer to your mouth.</sys:String>
 </ResourceDictionary>
