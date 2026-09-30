@@ -23,6 +23,10 @@
     <sys:String x:Key="langClearRule">Clear rule</sys:String>
     <sys:String x:Key="langSectionQuiet">Not here right now</sys:String>
     <sys:String x:Key="langSectionBlocked">Blocked</sys:String>
+    <sys:String x:Key="langDetailKnobs">What the device itself offers</sys:String>
+    <sys:String x:Key="langDetailSignal">Signal</sys:String>
+    <sys:String x:Key="langDetailCharge">Battery</sys:String>
+    <sys:String x:Key="langDetailRule">Rule</sys:String>
     <sys:String x:Key="langMoveUp">Up</sys:String>
     <sys:String x:Key="langMoveDown">Down</sys:String>
 

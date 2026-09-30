@@ -22,6 +22,10 @@
     <sys:String x:Key="langClearRule">Прибрати з правил</sys:String>
     <sys:String x:Key="langSectionQuiet">Зараз недоступні</sys:String>
     <sys:String x:Key="langSectionBlocked">Заборонені</sys:String>
+    <sys:String x:Key="langDetailKnobs">Що вміє сам пристрій</sys:String>
+    <sys:String x:Key="langDetailSignal">Сигнал</sys:String>
+    <sys:String x:Key="langDetailCharge">Заряд</sys:String>
+    <sys:String x:Key="langDetailRule">Правило</sys:String>
     <sys:String x:Key="langMoveUp">Вище</sys:String>
     <sys:String x:Key="langMoveDown">Нижче</sys:String>
 

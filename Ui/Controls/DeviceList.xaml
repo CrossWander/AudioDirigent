@@ -151,127 +151,158 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- Настройки устройства: раскрываются под самой строкой -->
-                            <StackPanel x:Name="Detail" Visibility="Collapsed" Margin="50,12,4,4">
+                            <!--
+                                Раскрытая строка: слева то, что задаёте вы, справа то, что
+                                отвечает устройство. Одной колонкой это было восемь этажей
+                                подряд — ползунок, галочка, подпись, полоска, число, кнопка,
+                                приговор, ручки железа, — и связи между ними не читались.
+                            -->
+                            <Grid x:Name="Detail" Visibility="Collapsed" Margin="50,14,4,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                                <!-- Что это устройство значит для правила. Редкие решения живут здесь,
-                                     а не в панели под списком: та относилась неизвестно к чему -->
-                                <WrapPanel>
-                                    <Button x:Name="MakeMainButton" Style="{DynamicResource Primary}"
-                                            Visibility="Collapsed" Margin="0,0,8,8"
-                                            Content="{DynamicResource langPopupMakeMain}" Click="OnMakeMain"/>
-                                    <Button x:Name="LinkButton" Style="{DynamicResource Flat}" Visibility="Collapsed"
-                                            Margin="0,0,8,8" MinWidth="112" Click="OnLink"
-                                            Content="{Binding LinkText}"/>
-                                    <Button x:Name="BlockButton" Style="{DynamicResource Flat}" Margin="0,0,8,8"
-                                            Content="{DynamicResource langMakeBlocked}" Click="OnMakeBlocked"/>
-                                </WrapPanel>
+                                <StackPanel>
+                                    <StackPanel x:Name="LevelGroup">
+                                        <TextBlock Text="{Binding LevelName}" Style="{DynamicResource GroupHeader}"/>
 
-                                <StackPanel x:Name="Knobs" Margin="0,6,0,0">
-                                    <TextBlock Text="{Binding LevelName}" Style="{DynamicResource GroupHeader}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Slider x:Name="LevelSlider" Minimum="0" Maximum="100" VerticalAlignment="Center"
+                                                    Value="{Binding Volume, Mode=OneWay}" ValueChanged="OnVolumeChanged"/>
+                                            <TextBlock Grid.Column="1" MinWidth="46" TextAlignment="Right"
+                                                       VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                                       Text="{Binding Value, ElementName=LevelSlider, StringFormat={}{0:0}%}"/>
+                                        </Grid>
 
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Slider x:Name="LevelSlider" Minimum="0" Maximum="100" VerticalAlignment="Center"
-                                                Value="{Binding Volume, Mode=OneWay}" ValueChanged="OnVolumeChanged"/>
-                                        <TextBlock Grid.Column="1" MinWidth="46" TextAlignment="Right"
-                                                   VerticalAlignment="Center" Style="{DynamicResource Caption}"
-                                                   Text="{Binding Value, ElementName=LevelSlider, StringFormat={}{0:0}%}"/>
-                                    </Grid>
+                                        <CheckBox x:Name="HoldToggle" Style="{DynamicResource Toggle}" Margin="0,14,0,0"
+                                                  Content="{DynamicResource langLevelHold}"
+                                                  IsChecked="{Binding Hold, Mode=OneWay}"
+                                                  Checked="OnHoldChanged" Unchecked="OnHoldChanged"/>
+                                        <TextBlock Text="{DynamicResource langLevelHoldHint}" Style="{DynamicResource Caption}"
+                                                   Margin="0,4,12,0" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="SharedNote" Text="{Binding Shared}" Style="{DynamicResource Caption}"
+                                                   Margin="0,6,12,0" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource Warn}"/>
+                                    </StackPanel>
 
+                                    <!-- Что умеет само устройство: у кого-то усиление, у кого-то ничего -->
+                                    <StackPanel x:Name="KnobGroup" Margin="0,20,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="{DynamicResource langDetailKnobs}" Style="{DynamicResource GroupHeader}"/>
+
+                                        <ItemsControl ItemsSource="{Binding Knobs}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type local:KnobRow}">
+                                                    <StackPanel Margin="0,10,0,0">
+                                                        <TextBlock x:Name="KnobName" Text="{Binding Name}" Style="{DynamicResource Caption}"/>
+
+                                                        <Grid x:Name="KnobLevel" Margin="0,5,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Slider x:Name="KnobSlider" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                                                                    Value="{Binding Value, Mode=OneTime}"
+                                                                    TickFrequency="{Binding Step}" IsSnapToTickEnabled="{Binding Snap}"
+                                                                    VerticalAlignment="Center" ValueChanged="OnKnobChanged"/>
+                                                            <!-- Подпись читает сам ползунок: иначе её пришлось бы догонять из кода -->
+                                                            <TextBlock Grid.Column="1" MinWidth="58" TextAlignment="Right"
+                                                                       VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                                                       Text="{Binding Value, ElementName=KnobSlider, StringFormat={}{0:+0.#;-0.#;0} dB}"/>
+                                                        </Grid>
+
+                                                        <CheckBox x:Name="KnobSwitch" Style="{DynamicResource Toggle}"
+                                                                  Content="{Binding Name}" IsChecked="{Binding On, Mode=OneTime}"
+                                                                  Checked="OnKnobToggled" Unchecked="OnKnobToggled"/>
+                                                    </StackPanel>
+
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding IsLevel}" Value="True">
+                                                            <Setter TargetName="KnobSwitch" Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsLevel}" Value="False">
+                                                            <Setter TargetName="KnobName" Property="Visibility" Value="Collapsed"/>
+                                                            <Setter TargetName="KnobLevel" Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Молчание здесь неотличимо от недоделки -->
+                                        <TextBlock x:Name="BareNote" Text="{DynamicResource langDeviceBare}"
+                                                   Style="{DynamicResource Caption}" Margin="0,4,12,0"
+                                                   TextWrapping="Wrap" Visibility="Collapsed"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
                                     <!-- Чувствительность на слух не выставить: полоска показывает, где перегруз -->
-                                    <Grid x:Name="Signal" Margin="0,2,0,0" Visibility="Collapsed">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <ProgressBar Style="{DynamicResource Meter}" VerticalAlignment="Center"
-                                                     Value="{Binding Peak}"/>
-                                        <TextBlock Grid.Column="1" MinWidth="46" TextAlignment="Right"
-                                                   VerticalAlignment="Center" Style="{DynamicResource Caption}"
-                                                   Text="{Binding PeakText}"/>
-                                    </Grid>
+                                    <StackPanel x:Name="SignalGroup" Visibility="Collapsed">
+                                        <TextBlock Text="{DynamicResource langDetailSignal}" Style="{DynamicResource GroupHeader}"/>
 
-                                    <!-- Число в децибелах само по себе ничего не говорит: нужен приговор -->
-                                    <StackPanel x:Name="Check" Orientation="Horizontal" Margin="0,10,0,0"
-                                                Visibility="Collapsed">
-                                        <Button x:Name="CheckButton" Style="{DynamicResource Flat}"
-                                                Content="{DynamicResource langCheckMic}" Click="OnCheck"/>
-                                        <TextBlock x:Name="Verdict" Text="{Binding Verdict}" Margin="12,0,52,0"
-                                                   VerticalAlignment="Center" Style="{DynamicResource Caption}"
-                                                   TextWrapping="Wrap"/>
+                                        <Grid Margin="0,2,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <ProgressBar Style="{DynamicResource Meter}" VerticalAlignment="Center"
+                                                         Value="{Binding Peak}"/>
+                                            <TextBlock Grid.Column="1" MinWidth="46" TextAlignment="Right"
+                                                       VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                                       Text="{Binding PeakText}"/>
+                                        </Grid>
+
+                                        <!-- Число в децибелах само по себе ничего не говорит: нужен приговор -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                            <Button x:Name="CheckButton" Style="{DynamicResource Flat}"
+                                                    Content="{DynamicResource langCheckMic}" Click="OnCheck"/>
+                                            <TextBlock x:Name="Verdict" Text="{Binding Verdict}" Margin="12,0,0,0"
+                                                       VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
                                     </StackPanel>
 
                                     <!-- Заряд, которого Windows не знает: устройство кричит его в эфир,
                                          но какое из объявлений чьё — знает только человек -->
-                                    <StackPanel x:Name="Bind" Orientation="Horizontal" Margin="0,10,0,0"
-                                                Visibility="Collapsed">
-                                        <Button x:Name="BindButton" Style="{DynamicResource Flat}"
-                                                Content="{DynamicResource langBindCharge}" Click="OnBind"/>
-                                        <TextBlock x:Name="BindNote" Text="{Binding BindNote}" Margin="12,0,52,0"
-                                                   VerticalAlignment="Center" Style="{DynamicResource Caption}"
-                                                   TextWrapping="Wrap"/>
+                                    <StackPanel x:Name="ChargeGroup" Margin="0,20,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="{DynamicResource langDetailCharge}" Style="{DynamicResource GroupHeader}"/>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <Button x:Name="BindButton" Style="{DynamicResource Flat}"
+                                                    Content="{DynamicResource langBindCharge}" Click="OnBind"/>
+                                            <TextBlock x:Name="BindNote" Text="{Binding BindNote}" Margin="12,0,0,0"
+                                                       VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
                                     </StackPanel>
 
-                                    <CheckBox x:Name="HoldToggle" Style="{DynamicResource Toggle}" Margin="0,14,0,0"
-                                              Content="{DynamicResource langLevelHold}"
-                                              IsChecked="{Binding Hold, Mode=OneWay}"
-                                              Checked="OnHoldChanged" Unchecked="OnHoldChanged"/>
-                                    <TextBlock Text="{DynamicResource langLevelHoldHint}" Style="{DynamicResource Caption}"
-                                               Margin="0,4,52,0" TextWrapping="Wrap"/>
-                                    <TextBlock x:Name="SharedNote" Text="{Binding Shared}" Style="{DynamicResource Caption}"
-                                               Margin="0,6,52,0" TextWrapping="Wrap"
-                                               Foreground="{DynamicResource Warn}"/>
+                                    <!-- Редкие решения живут здесь, а не в панели под списком:
+                                         та относилась неизвестно к какой строке -->
+                                    <StackPanel Margin="0,20,0,0">
+                                        <TextBlock Text="{DynamicResource langDetailRule}" Style="{DynamicResource GroupHeader}"/>
 
-                                    <!-- Что умеет само устройство: у кого-то усиление, у кого-то ничего -->
-                                    <ItemsControl ItemsSource="{Binding Knobs}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type local:KnobRow}">
-                                                <StackPanel Margin="0,14,0,0">
-                                                    <TextBlock x:Name="KnobName" Text="{Binding Name}" Style="{DynamicResource Caption}"/>
+                                        <WrapPanel Margin="0,2,0,0">
+                                            <Button x:Name="MakeMainButton" Style="{DynamicResource Primary}"
+                                                    Visibility="Collapsed" Margin="0,0,8,8"
+                                                    Content="{DynamicResource langPopupMakeMain}" Click="OnMakeMain"/>
+                                            <Button x:Name="LinkButton" Style="{DynamicResource Flat}" Visibility="Collapsed"
+                                                    Margin="0,0,8,8" MinWidth="112" Click="OnLink"
+                                                    Content="{Binding LinkText}"/>
+                                            <Button x:Name="BlockButton" Style="{DynamicResource Flat}" Margin="0,0,8,8"
+                                                    Content="{DynamicResource langMakeBlocked}" Click="OnMakeBlocked"/>
+                                        </WrapPanel>
 
-                                                    <Grid x:Name="KnobLevel" Margin="0,5,0,0">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Slider x:Name="KnobSlider" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
-                                                                Value="{Binding Value, Mode=OneTime}"
-                                                                TickFrequency="{Binding Step}" IsSnapToTickEnabled="{Binding Snap}"
-                                                                VerticalAlignment="Center" ValueChanged="OnKnobChanged"/>
-                                                        <!-- Подпись читает сам ползунок: иначе её пришлось бы догонять из кода -->
-                                                        <TextBlock Grid.Column="1" MinWidth="58" TextAlignment="Right"
-                                                                   VerticalAlignment="Center" Style="{DynamicResource Caption}"
-                                                                   Text="{Binding Value, ElementName=KnobSlider, StringFormat={}{0:+0.#;-0.#;0} dB}"/>
-                                                    </Grid>
-
-                                                    <CheckBox x:Name="KnobSwitch" Style="{DynamicResource Toggle}"
-                                                              Content="{Binding Name}" IsChecked="{Binding On, Mode=OneTime}"
-                                                              Checked="OnKnobToggled" Unchecked="OnKnobToggled"/>
-                                                </StackPanel>
-
-                                                <DataTemplate.Triggers>
-                                                    <DataTrigger Binding="{Binding IsLevel}" Value="True">
-                                                        <Setter TargetName="KnobSwitch" Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsLevel}" Value="False">
-                                                        <Setter TargetName="KnobName" Property="Visibility" Value="Collapsed"/>
-                                                        <Setter TargetName="KnobLevel" Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </DataTemplate.Triggers>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                    <!-- Молчание здесь неотличимо от недоделки -->
-                                    <TextBlock x:Name="BareNote" Text="{DynamicResource langDeviceBare}"
-                                               Style="{DynamicResource Caption}" Margin="0,14,52,0"
-                                               TextWrapping="Wrap" Visibility="Collapsed"/>
+                                        <TextBlock Text="{Binding BadgeHint}" Style="{DynamicResource Caption}"
+                                                   Margin="0,2,12,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
                         </StackPanel>
 
                         <DataTemplate.Triggers>
@@ -298,10 +329,6 @@
                             <DataTrigger Binding="{Binding Active}" Value="True">
                                 <Setter TargetName="StateDot" Property="Fill" Value="{DynamicResource Good}"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Active}" Value="False">
-                                <Setter TargetName="RowName" Property="Foreground" Value="{DynamicResource TextFaint}"/>
-                                <Setter TargetName="Knobs" Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
                             <DataTrigger Binding="{Binding Current}" Value="True">
                                 <Setter TargetName="RowName" Property="FontWeight" Value="SemiBold"/>
                                 <Setter TargetName="RowNote" Property="Visibility" Value="Visible"/>
@@ -310,8 +337,14 @@
                                 <Setter TargetName="LevelText" Property="Foreground" Value="{DynamicResource Text}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Capture}" Value="True">
-                                <Setter TargetName="Signal" Property="Visibility" Value="Visible"/>
-                                <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="SignalGroup" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="KnobGroup" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Active}" Value="False">
+                                <Setter TargetName="RowName" Property="Foreground" Value="{DynamicResource TextFaint}"/>
+                                <Setter TargetName="LevelGroup" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="SignalGroup" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="KnobGroup" Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Testing}" Value="True">
                                 <Setter TargetName="CheckButton" Property="IsEnabled" Value="False"/>
@@ -323,7 +356,7 @@
                                 <Setter TargetName="Verdict" Property="Foreground" Value="{DynamicResource Warn}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding CanBind}" Value="True">
-                                <Setter TargetName="Bind" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ChargeGroup" Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Pairing}" Value="True">
                                 <Setter TargetName="BindButton" Property="IsEnabled" Value="False"/>

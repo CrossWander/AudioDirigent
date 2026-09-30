@@ -115,16 +115,16 @@ sits on the taskbar; exit is in the tray menu.
 
 Inside:
 
-- **Default device** — what is playing now, the state of the probe if one is set up, and
-  the Watching/Paused badge. The badge is the pause switch.
-- **Output / Input** — two tabs over one list: each direction has its own rules. Every
-  endpoint, active ones first. On the left a badge: priority number, a red `✕` for blocked,
-  or a `+` for a live device no rule covers yet — hovering it names the rule that put it
-  there. Next to the state, a chip with the level the device is set to on a switch.
-- **Buttons** — Prioritise / Block / Clear rule / Up / Down act on the selected row and
-  write `config.json` immediately. Two more appear only when they apply: **Make it the main
-  device** for a device outside the rules, and **Connect** / **Disconnect** for a Bluetooth
-  headset. **Restore sound**, apart at the right end, acts on the system instead.
+- **Default device** — one line at the top: what is playing now, its charge, and the
+  Watching/Paused badge. The badge is the pause switch.
+- **Output / Input** — two tabs over one list: each direction has its own rules.
+- **The rule, top to bottom** — the list opens with the rule itself, in its own order,
+  present or not: a headset unplugged for the night keeps its place, which is the whole
+  point of having one. Arrows in the row move a device through that order; the `✕` takes it
+  out. Under the rule sit live devices no rule covers yet, marked `+`, because that is a
+  question and questions do not belong under a fold. What is left goes into two collapsed
+  sections — devices that are not here, and blocked ones — each saying how many it holds.
+- **Restore sound**, at the right end of the tabs, acts on the system rather than on a row.
 - **Settings** — theme, run at logon, USB port power, the connection card, balloons, and
   hotkeys. Below them, apart, everything about new versions: **Check for updates**, a daily
   check that can be switched on, and **Install** — the only times the app touches the
@@ -133,15 +133,27 @@ Inside:
 
 ### Opening a device, and what a microphone will let you change
 
-A row unfolds under itself — click it, or the chevron at its end. Inside is the level for
-that device, named for what it does: **Volume** on the Playback side, **Sensitivity** on
-Recording. Windows already remembers a level per
+A row unfolds under itself — click it, or the chevron at its end — into two columns: on the
+left what you set, on the right what the device answers. They used to be one column eight
+storeys tall, which said nothing about which of those things belonged together.
+
+A row opens even when its device is absent. Only the rule column is there then, which is
+the case that needs it: blocking an HDMI output that appears and disappears is exactly the
+decision you cannot make while it is gone.
+
+The rule column holds the decisions that are taken once — **Block**, **Make it the main
+device**, **Connect** / **Disconnect** for a Bluetooth headset — and, under them, the rule
+that put this device where it is, spelled out. They live here rather than in a bar under
+the list, where they used to act on a selection made somewhere else.
+
+On the left is the level for that device, named for what it does: **Volume** on the
+Playback side, **Sensitivity** on Recording. Windows already remembers a level per
 endpoint and restores it itself — the app writes it there and is then out of the way. **Hold
 this level** is the exception, and it is a choice rather than a side effect of touching the
 slider: with it on, the app sets the level back every time it picks the device, for the case
 where something else keeps moving it.
 
-On the Recording side the card carries more, because a microphone has more than one gain
+On the Recording side the right column carries more, because a microphone has more than one gain
 stage and only the first one belongs to the endpoint:
 
 - a **signal bar** under the slider, scaled in decibels from -60 dB and labelled with the
