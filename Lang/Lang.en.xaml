@@ -23,10 +23,10 @@
     <sys:String x:Key="langClearRule">Clear rule</sys:String>
     <sys:String x:Key="langSectionQuiet">Not here right now</sys:String>
     <sys:String x:Key="langSectionBlocked">Blocked</sys:String>
-    <sys:String x:Key="langDetailKnobs">What the device itself offers</sys:String>
-    <sys:String x:Key="langDetailSignal">Signal</sys:String>
-    <sys:String x:Key="langDetailCharge">Battery</sys:String>
-    <sys:String x:Key="langDetailRule">Rule</sys:String>
+    <sys:String x:Key="langDetailKnobs">WHAT THE DEVICE ITSELF OFFERS</sys:String>
+    <sys:String x:Key="langDetailSignal">SIGNAL</sys:String>
+    <sys:String x:Key="langDetailCharge">BATTERY</sys:String>
+    <sys:String x:Key="langDetailRule">RULE</sys:String>
     <sys:String x:Key="langRuleTopDown">THE RULE — TOP TO BOTTOM</sys:String>
     <sys:String x:Key="langColumnLevel">level</sys:String>
     <sys:String x:Key="langColumnCharge">battery</sys:String>
@@ -247,7 +247,7 @@
     <sys:String x:Key="langOk">OK</sys:String>
     <sys:String x:Key="langCancel">Cancel</sys:String>
     <sys:String x:Key="langLevelHold">Hold this level</sys:String>
-    <sys:String x:Key="langLevelHoldHint">Windows remembers the level on its own. Turn this on only if something keeps moving it — the app will then set it back every time it picks the device.</sys:String>
+    <sys:String x:Key="langLevelHoldHint">Windows remembers the level itself. A rule is for when something else keeps moving it.</sys:String>
     <sys:String x:Key="langCliMicLevel">endpoint level: {0}%</sys:String>
     <sys:String x:Key="langCliMicNone">the device offers nothing beyond the level</sys:String>
     <sys:String x:Key="langVolume">Volume</sys:String>

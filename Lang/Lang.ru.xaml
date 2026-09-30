@@ -22,10 +22,10 @@
     <sys:String x:Key="langClearRule">Убрать из правил</sys:String>
     <sys:String x:Key="langSectionQuiet">Сейчас недоступны</sys:String>
     <sys:String x:Key="langSectionBlocked">Запрещены</sys:String>
-    <sys:String x:Key="langDetailKnobs">Что умеет само устройство</sys:String>
-    <sys:String x:Key="langDetailSignal">Сигнал</sys:String>
-    <sys:String x:Key="langDetailCharge">Заряд</sys:String>
-    <sys:String x:Key="langDetailRule">Правило</sys:String>
+    <sys:String x:Key="langDetailKnobs">ЧТО УМЕЕТ САМО УСТРОЙСТВО</sys:String>
+    <sys:String x:Key="langDetailSignal">СИГНАЛ</sys:String>
+    <sys:String x:Key="langDetailCharge">ЗАРЯД</sys:String>
+    <sys:String x:Key="langDetailRule">ПРАВИЛО</sys:String>
     <sys:String x:Key="langRuleTopDown">ПРАВИЛО — СВЕРХУ ВНИЗ</sys:String>
     <sys:String x:Key="langColumnLevel">уровень</sys:String>
     <sys:String x:Key="langColumnCharge">заряд</sys:String>
@@ -246,7 +246,7 @@
     <sys:String x:Key="langOk">Хорошо</sys:String>
     <sys:String x:Key="langCancel">Отмена</sys:String>
     <sys:String x:Key="langLevelHold">Удерживать этот уровень</sys:String>
-    <sys:String x:Key="langLevelHoldHint">Windows и так помнит уровень. Включайте, только если его кто-то сбивает: тогда программа будет возвращать его каждый раз, когда выбирает устройство.</sys:String>
+    <sys:String x:Key="langLevelHoldHint">Windows помнит уровень сама. Правило нужно, когда его сбивает что-то ещё.</sys:String>
     <sys:String x:Key="langCliMicLevel">уровень точки: {0}%</sys:String>
     <sys:String x:Key="langCliMicNone">кроме уровня устройство ничего не отдаёт</sys:String>
     <sys:String x:Key="langVolume">Громкость</sys:String>

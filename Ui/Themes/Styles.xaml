@@ -442,6 +442,15 @@
         </Setter>
     </Style>
 
+    <!-- Заголовок группы в раскрытой строке: прописными и мелко, чтобы он читался как
+         подпись к участку, а не как ещё одна строка текста наравне с остальными -->
+    <Style x:Key="Legend" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextFaint}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
     <Style x:Key="Row" TargetType="ListBoxItem">
         <Setter Property="Padding" Value="12,9"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

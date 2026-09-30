@@ -54,7 +54,6 @@ public partial class DeviceList : UserControl
 
 	private DeviceRow? _open;
 	private Meter? _signal;
-	private bool _filling;
 
 	// Проверка: докуда слушаем и что самое громкое услышали.
 	private DateTime _until;
@@ -137,11 +136,7 @@ public partial class DeviceList : UserControl
 			wanted.AddRange(_banned.Open ? banned.Select(Row) : []);
 		}
 
-		// Перебор строк меняет выделение, а на выделение подвешено раскрытие: пока идёт
-		// сверка, оно не должно принимать перестановку за выбор человека.
-		_filling = true;
 		Sync(wanted);
-		_filling = false;
 
 		// Раскрытое устройство могло и пропасть — тогда отпускаем и поток с него.
 		if (_open is { } open && !_items.Contains(open))
@@ -285,10 +280,9 @@ public partial class DeviceList : UserControl
 			return;
 		}
 
-		if (!_filling)
-		{
-			Expand(Rows.SelectedItem as DeviceRow);
-		}
+		// Раскрытием заведует щелчок по строке, а не выделение: выделение меняется и
+		// стрелками, и при пересборке списка, и раскрывать по нему значило бы открывать
+		// строку, по которой никто не щёлкал.
 	}
 
 	private void OnSection(object sender, RoutedEventArgs e)
@@ -300,7 +294,10 @@ public partial class DeviceList : UserControl
 		}
 	}
 
-	// Шеврон делает то же самое: он нужен, чтобы раскрытие было видно, а не угадывалось.
+	/// <summary>
+	/// Щелчок по строке или по шеврону: раскрыть закрытую, сложить раскрытую. Шеврон нужен
+	/// не как единственный способ, а чтобы раскрытие было видно, а не угадывалось.
+	/// </summary>
 	private void OnChevron(object sender, RoutedEventArgs e)
 	{
 		if ((sender as FrameworkElement)?.DataContext is not DeviceRow row)
@@ -308,11 +305,9 @@ public partial class DeviceList : UserControl
 			return;
 		}
 
-		// Кнопка гасит щелчок, и список выделения не меняет: кнопки под списком остались
-		// бы на прежнем устройстве, а открытым было бы это.
-		_filling = true;
+		// Щелчок по шеврону список выделения не меняет: строка осталась бы раскрытой,
+		// а выделенной — прежняя.
 		Rows.SelectedItem = row;
-		_filling = false;
 
 		Expand(row.Expanded ? null : row);
 	}
@@ -447,6 +442,10 @@ public partial class DeviceList : UserControl
 		Fill(row);
 		row.Expanded = true;
 
+		// Раскрытая строка вдвое выше обычной и у нижнего края списка уезжает за него:
+		// открыть её и не увидеть — то же самое, что не открыть.
+		Rows.ScrollIntoView(row);
+
 		// Мерить можно только то, что идёт: пока с микрофона никто не пишет, потока нет,
 		// и полоске нечего показывать. Windows в своей панели звука открывает его за тем же.
 		if (row is { Capture: true, Active: true })
@@ -477,7 +476,7 @@ public partial class DeviceList : UserControl
 		var pinned = Volume.For(device);
 
 		row.Capture = capture;
-		row.LevelName = Localization.Get(capture ? "langSensitivity" : "langVolume");
+		row.LevelName = Localization.Get(capture ? "langSensitivity" : "langVolume").ToUpperInvariant();
 		row.Volume = Endpoints.Level(device) ?? pinned?.Percent ?? 50;
 		row.Hold = pinned is not null;
 		row.Peak = 0;
