@@ -36,10 +36,11 @@ public partial class MainWindow : Window
 		Bar.Maximise += () => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 		Bar.Close += Close;
 
-		Current.PauseToggled += OnPauseToggled;
+		Bar.PauseToggled += OnPauseToggled;
 		Devices.FlowChanged += _ => Current.Refill(Devices.Flow);
 		Settings.UpdateChecked += Footer.Show;
 		Log.HeightWanted += Grow;
+		Footer.LogToggled += OnLogToggled;
 
 		SettingsMenu.CustomPopupPlacementCallback = PlaceUnder;
 		NearbyMenu.CustomPopupPlacementCallback = PlaceUnder;
@@ -65,7 +66,7 @@ public partial class MainWindow : Window
 	}
 
 	/// <summary>Паузу ставят и из трея, и сочетанием клавиш — значок состояния должен догнать.</summary>
-	public void SyncPauseState() => Dispatcher.BeginInvoke(Current.RefreshBadge);
+	public void SyncPauseState() => Dispatcher.BeginInvoke(ShowPause);
 
 	/// <summary>Итог проверки обновлений, сделанной без окна: показать его, когда оно открылось.</summary>
 	internal void ShowUpdate(Release? release) => Dispatcher.BeginInvoke(() =>
@@ -136,7 +137,15 @@ public partial class MainWindow : Window
 	private void OnPauseToggled()
 	{
 		_togglePause();
-		Current.RefreshBadge();
+		ShowPause();
+	}
+
+	private void ShowPause() => Bar.ShowState(_switcher.Paused);
+
+	private void OnLogToggled()
+	{
+		Log.Toggle();
+		Footer.ShowLog(Log.IsOpen);
 	}
 
 	private void OnLogged(LogEntry entry) => Dispatcher.BeginInvoke(() => Log.Add(entry));
@@ -156,6 +165,7 @@ public partial class MainWindow : Window
 
 	private void Refill()
 	{
+		ShowPause();
 		Current.Refill(Devices.Flow);
 		Devices.Refill();
 

@@ -26,6 +26,10 @@
     <sys:String x:Key="langDetailSignal">Сигнал</sys:String>
     <sys:String x:Key="langDetailCharge">Заряд</sys:String>
     <sys:String x:Key="langDetailRule">Правило</sys:String>
+    <sys:String x:Key="langRuleTopDown">ПРАВИЛО — СВЕРХУ ВНИЗ</sys:String>
+    <sys:String x:Key="langColumnLevel">уровень</sys:String>
+    <sys:String x:Key="langColumnCharge">заряд</sys:String>
+    <sys:String x:Key="langColumnState">состояние</sys:String>
     <sys:String x:Key="langMoveUp">Выше</sys:String>
     <sys:String x:Key="langMoveDown">Ниже</sys:String>
 

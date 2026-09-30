@@ -1,6 +1,4 @@
-using System;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace AudioDirigent;
@@ -11,9 +9,6 @@ public partial class CurrentDevice : UserControl
 	private Switcher? _switcher;
 
 	public CurrentDevice() => InitializeComponent();
-
-	/// <summary>Щёлкнули по значку состояния — окно ставит и снимает паузу.</summary>
-	public event Action? PauseToggled;
 
 	internal void Attach(Switcher switcher) => _switcher = switcher;
 
@@ -29,20 +24,7 @@ public partial class CurrentDevice : UserControl
 		DeviceName.Text = current?.Name ?? Localization.Get("langNone");
 		StateDot.Fill = Paint(current is null ? "Muted" : "Good");
 		Charge.Show(Battery.Of(current?.Node));
-
-		RefreshBadge();
-	}
-
-	internal void RefreshBadge()
-	{
-		var paused = _switcher?.Paused == true;
-
-		StateText.Text = Localization.Get(paused ? "langPausedBadge" : "langWatching");
-		StateBadgeDot.Fill = Paint(paused ? "Muted" : "Good");
-		StateBadge.Background = paused ? Paint("BadgeFill") : Paint("AccentFaint");
 	}
 
 	private Brush Paint(string key) => (Brush)FindResource(key);
-
-	private void OnBadgeClick(object sender, MouseButtonEventArgs e) => PauseToggled?.Invoke();
 }

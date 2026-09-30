@@ -6,6 +6,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -26,9 +27,40 @@
                     ToolTip="{DynamicResource langRecoverHint}" Click="OnRecover"/>
         </Grid>
 
-        <Border Grid.Row="1" Style="{DynamicResource Group}" Padding="6">
+        <!--
+            Шапка колонок. Без неё «—», «60%» и «отключено» стоят у правого края тремя
+            числами без объяснения, а «сверху вниз» приходится угадывать по номерам.
+        -->
+        <Grid Grid.Row="1" Margin="6,0,6,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="70"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource langRuleTopDown}" Style="{DynamicResource Caption}"
+                           FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextFaint}"/>
+                <Border Height="1" Width="240" Margin="12,1,0,0" VerticalAlignment="Center"
+                        Background="{DynamicResource Line}"/>
+            </StackPanel>
+
+            <TextBlock Grid.Column="1" Text="{DynamicResource langColumnLevel}" Margin="12,0"
+                       MinWidth="42" TextAlignment="Right" FontSize="11"
+                       Style="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}"/>
+            <TextBlock Grid.Column="2" Text="{DynamicResource langColumnCharge}" Margin="0,0,14,0"
+                       MinWidth="52" TextAlignment="Right" FontSize="11"
+                       Style="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}"/>
+            <TextBlock Grid.Column="3" Text="{DynamicResource langColumnState}"
+                       MinWidth="92" TextAlignment="Right" FontSize="11"
+                       Style="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
             <ListBox x:Name="Rows" Background="Transparent" BorderThickness="0"
-                     ItemContainerStyle="{DynamicResource Row}"
+                     ItemContainerStyle="{DynamicResource ListRow}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      SelectionChanged="OnSelected"
                      HorizontalContentAlignment="Stretch">
@@ -37,8 +69,7 @@
 
                     <!-- Заголовок раздела: та же строка списка, только вместо устройства — счёт -->
                     <DataTemplate DataType="{x:Type local:SectionRow}">
-                        <Button Style="{DynamicResource Bare}" HorizontalContentAlignment="Stretch"
-                                Padding="0,2" Click="OnSection">
+                        <Button Style="{DynamicResource Band}" Click="OnSection">
                             <StackPanel Orientation="Horizontal">
                                 <Path x:Name="Fold" Width="9" Height="9" Margin="0,0,10,0" VerticalAlignment="Center"
                                       Stroke="{DynamicResource TextFaint}" StrokeThickness="1.4"
@@ -77,14 +108,14 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Очередь правила двигают здесь же: место в ней видно только рядом с ним -->
-                                <StackPanel x:Name="Ladder" Width="14" VerticalAlignment="Center" Visibility="Hidden">
-                                    <Button Style="{DynamicResource Bare}" Height="13" Click="OnRaise"
+                                <StackPanel x:Name="Ladder" Width="16" VerticalAlignment="Center" Visibility="Hidden">
+                                    <Button Style="{DynamicResource Glyph}" Width="16" Height="14" Click="OnRaise"
                                             IsEnabled="{Binding CanRaise}" ToolTip="{DynamicResource langMoveUp}">
                                         <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                               StrokeLineJoin="Round" Data="M0,4 L3.5,0 L7,4"/>
                                     </Button>
-                                    <Button Style="{DynamicResource Bare}" Height="13" Click="OnLower"
+                                    <Button Style="{DynamicResource Glyph}" Width="16" Height="14" Click="OnLower"
                                             IsEnabled="{Binding CanLower}" ToolTip="{DynamicResource langMoveDown}">
                                         <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -93,8 +124,8 @@
                                 </StackPanel>
 
                                 <TextBlock x:Name="MarkText" Grid.Column="1" Text="{Binding Badge}" FontSize="12"
-                                           Width="22" TextAlignment="Center" VerticalAlignment="Center"
-                                           Margin="6,0,8,0" ToolTip="{Binding BadgeHint}"
+                                           Width="20" TextAlignment="Center" VerticalAlignment="Center"
+                                           Margin="4,0,10,0" ToolTip="{Binding BadgeHint}"
                                            Foreground="{DynamicResource TextDim}"/>
 
                                 <Ellipse x:Name="StateDot" Grid.Column="2" Width="8" Height="8" Margin="0,0,12,0"
@@ -124,13 +155,13 @@
                                 <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center"
                                             Margin="14,0,0,0">
                                     <!-- Правило меняют там, где оно написано: в самой строке -->
-                                    <Button x:Name="Join" Style="{DynamicResource Bare}" Width="26" Height="26"
+                                    <Button x:Name="Join" Style="{DynamicResource Glyph}" Width="26" Height="26"
                                             Click="OnJoin" ToolTip="{DynamicResource langMakePriority}">
                                         <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                               Data="M4.5,0 L4.5,9 M0,4.5 L9,4.5"/>
                                     </Button>
-                                    <Button x:Name="Drop" Style="{DynamicResource Bare}" Width="26" Height="26"
+                                    <Button x:Name="Drop" Style="{DynamicResource Glyph}" Width="26" Height="26"
                                             Visibility="Collapsed" Click="OnDrop"
                                             ToolTip="{DynamicResource langClearRule}">
                                         <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -139,7 +170,7 @@
                                     </Button>
 
                                     <!-- Шеврон: то же, что и щелчок по строке, но видимый -->
-                                    <Button x:Name="Chevron" Style="{DynamicResource Bare}"
+                                    <Button x:Name="Chevron" Style="{DynamicResource Glyph}"
                                             Width="28" Height="28" Margin="2,0,0,0" Click="OnChevron"
                                             ToolTip="{DynamicResource langRowExpand}">
                                         <Path x:Name="Arrow"
@@ -380,6 +411,6 @@
 
                 </ListBox.Resources>
             </ListBox>
-        </Border>
+        </Grid>
     </Grid>
 </UserControl>

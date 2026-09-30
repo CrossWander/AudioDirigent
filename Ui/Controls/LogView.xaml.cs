@@ -43,9 +43,22 @@ public partial class LogView : UserControl
 		Scroll.ScrollToEnd();
 	}
 
-	private void OnExpanded(object sender, RoutedEventArgs e) => HeightWanted?.Invoke(+Extra());
+	/// <summary>Открыт ли журнал сейчас.</summary>
+	internal bool IsOpen => Panel.Visibility == Visibility.Visible;
 
-	private void OnCollapsed(object sender, RoutedEventArgs e) => HeightWanted?.Invoke(-Extra());
+	/// <summary>Открыть или закрыть; окно подрастает ровно на высоту панели.</summary>
+	internal void Toggle()
+	{
+		var open = !IsOpen;
+
+		Panel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+		HeightWanted?.Invoke(open ? +Extra() : -Extra());
+
+		if (open)
+		{
+			Scroll.ScrollToEnd();
+		}
+	}
 
 	// Высота панели вместе с отступом: раскрытый журнал не должен съедать список устройств.
 	private static double Extra() => 150 + 8;

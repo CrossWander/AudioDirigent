@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -37,6 +37,15 @@ public partial class FooterBar : UserControl
 		ProbeDot.Visibility = hasProbe ? Visibility.Visible : Visibility.Collapsed;
 		ProbeStatus.Visibility = hasProbe ? Visibility.Visible : Visibility.Collapsed;
 	}
+
+	/// <summary>Нажали «Журнал»: открыть его должно окно — панель живёт не здесь.</summary>
+	internal event System.Action? LogToggled;
+
+	/// <summary>Стрелка смотрит вниз, пока журнал открыт.</summary>
+	internal void ShowLog(bool open) =>
+		LogArrow.RenderTransform = new System.Windows.Media.RotateTransform(open ? 90 : 0, 4.5, 4.5);
+
+	private void OnLog(object sender, RoutedEventArgs e) => LogToggled?.Invoke();
 
 	/// <summary>Отметить язык, выбранный не отсюда.</summary>
 	internal void SelectLanguage()
