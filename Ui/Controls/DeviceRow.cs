@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace AudioDirigent;
 
@@ -18,7 +16,7 @@ internal enum RowMark
 /// подбирает разметка. Класть сюда кисти нельзя: при смене темы они остались бы прежними,
 /// и список не перекрасился бы вместе со всем остальным.
 /// </summary>
-internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
+internal sealed class DeviceRow(AudioEndpoint device) : Notifier
 {
 	private string _name = device.Name;
 	private string _state = "";
@@ -30,6 +28,12 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private bool _active;
 	private bool _current;
 	private bool _pinned;
+	private bool _inRule;
+	private bool _canRaise;
+	private bool _canLower;
+	private bool _canMakeMain;
+	private bool _canLink;
+	private string _linkText = "";
 	private bool _expanded;
 	private bool _capture;
 	private bool _bare;
@@ -47,8 +51,6 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private bool? _verdictGood;
 	private bool _hold;
 	private IReadOnlyList<KnobRow> _knobs = [];
-
-	public event PropertyChangedEventHandler? PropertyChanged;
 
 	/// <summary>Устройство остаётся тем же, пока строка жива: список сверяется по его номеру.</summary>
 	public AudioEndpoint Device { get; private set; } = device;
@@ -74,6 +76,22 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Уровень громкости закреплён правилом.</summary>
 	public bool Pinned { get => _pinned; set => Set(ref _pinned, value); }
+
+	/// <summary>Устройство стоит в правиле: только у такого есть место в очереди.</summary>
+	public bool InRule { get => _inRule; set => Set(ref _inRule, value); }
+
+	/// <summary>Есть куда двигать вверх; у первого в правиле стрелка гаснет.</summary>
+	public bool CanRaise { get => _canRaise; set => Set(ref _canRaise, value); }
+
+	public bool CanLower { get => _canLower; set => Set(ref _canLower, value); }
+
+	/// <summary>Живое устройство без правила: ему и предлагают стать основным.</summary>
+	public bool CanMakeMain { get => _canMakeMain; set => Set(ref _canMakeMain, value); }
+
+	/// <summary>Связь можно поднять или разорвать — это умеет только Bluetooth.</summary>
+	public bool CanLink { get => _canLink; set => Set(ref _canLink, value); }
+
+	public string LinkText { get => _linkText; set => Set(ref _linkText, value); }
 
 	/// <summary>Строка раскрыта: под ней показаны её настройки.</summary>
 	public bool Expanded { get => _expanded; set => Set(ref _expanded, value); }
@@ -132,14 +150,4 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 		Name = fresh.Name;
 	}
 
-	private void Set<T>(ref T field, T value, [CallerMemberName] string? property = null)
-	{
-		if (Equals(field, value))
-		{
-			return;
-		}
-
-		field = value;
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
-	}
 }

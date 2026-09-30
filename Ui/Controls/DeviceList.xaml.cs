@@ -37,7 +37,16 @@ internal sealed record KnobRow(MicrophoneKnob Knob, double Step, bool Snap)
 /// </summary>
 public partial class DeviceList : UserControl
 {
-	private readonly ObservableCollection<DeviceRow> _rows = [];
+	// Список держит и устройства, и заголовки разделов: порядок между ними и есть
+	// смысл окна, и собирать его в двух разных местах нельзя.
+	private readonly ObservableCollection<object> _items = [];
+
+	// Строки живут дольше обновления: иначе раскрытая строка закрывалась бы на каждое
+	// событие Core Audio, а их приходит по нескольку в секунду.
+	private readonly Dictionary<string, DeviceRow> _byId = new(StringComparer.Ordinal);
+
+	private readonly SectionRow _silent = new();
+	private readonly SectionRow _banned = new();
 
 	private Switcher? _switcher;
 	private EDataFlow _flow = EDataFlow.Render;
@@ -70,7 +79,7 @@ public partial class DeviceList : UserControl
 	public DeviceList()
 	{
 		InitializeComponent();
-		Rows.ItemsSource = _rows;
+		Rows.ItemsSource = _items;
 		_meter.Tick += (_, _) => ShowPeak();
 	}
 
@@ -90,72 +99,114 @@ public partial class DeviceList : UserControl
 
 		var config = switcher.Rules.For(_flow);
 		var current = Endpoints.Current(_flow);
-		var devices = Endpoints.All(_flow)
-			.OrderByDescending(device => device.State == DeviceState.Active)
+		var devices = Endpoints.All(_flow);
+
+		// Правило — это и есть ответ приложения на вопрос «какое устройство вы имели в виду»,
+		// и читается он сверху вниз. Раньше список шёл по состоянию, а места правила были
+		// рассыпаны по нему номерами: чтобы увидеть правило, его приходилось собирать глазами.
+		var ruled = devices
+			.Where(device => !config.Blocks(device) && config.Rank(device) >= 0)
+			.OrderBy(config.Rank)
 			.ThenBy(device => device.Name)
 			.ToList();
+
+		var banned = devices.Where(config.Blocks).OrderBy(device => device.Name).ToList();
+		var rest = devices.Except(ruled).Except(banned).OrderBy(device => device.Name).ToList();
+
+		// Живое устройство, о котором правил нет, — это вопрос, а вопрос не прячут под свёртку:
+		// он стоит сразу под правилом, там же, где на него отвечают.
+		var asking = rest.Where(device => device.State == DeviceState.Active).ToList();
+		var silent = rest.Except(asking).ToList();
+
+		_silent.Title = Localization.Get("langSectionQuiet");
+		_silent.Count = silent.Count;
+		_banned.Title = Localization.Get("langSectionBlocked");
+		_banned.Count = banned.Count;
+
+		List<object> wanted = [.. ruled.Concat(asking).Select(Row)];
+
+		if (silent.Count > 0)
+		{
+			wanted.Add(_silent);
+			wanted.AddRange(_silent.Open ? silent.Select(Row) : []);
+		}
+
+		if (banned.Count > 0)
+		{
+			wanted.Add(_banned);
+			wanted.AddRange(_banned.Open ? banned.Select(Row) : []);
+		}
 
 		// Перебор строк меняет выделение, а на выделение подвешено раскрытие: пока идёт
 		// сверка, оно не должно принимать перестановку за выбор человека.
 		_filling = true;
-		Sync(devices);
+		Sync(wanted);
 		_filling = false;
 
 		// Раскрытое устройство могло и пропасть — тогда отпускаем и поток с него.
-		if (_open is { } open && (!_rows.Contains(open) || open.Device.State != DeviceState.Active))
+		if (_open is { } open && !_items.Contains(open))
 		{
 			Close();
 		}
 
-		foreach (var row in _rows)
-		{
-			Describe(row, config, current);
-		}
+		var ranks = ruled.Select(config.Rank).ToList();
 
-		// Перестановка строк уводит прокрутку: без выделения смотреть надо на живые
-		// устройства, а они наверху.
-		if (Rows.SelectedItem is null && _rows.Count > 0)
+		foreach (var row in _items.OfType<DeviceRow>())
 		{
-			Rows.ScrollIntoView(_rows[0]);
+			Describe(row, config, current, ranks);
 		}
-
-		UpdateActions();
 	}
 
-	/// <summary>Привести набор строк к набору устройств, сохранив те, что уже есть.</summary>
-	private void Sync(List<AudioEndpoint> devices)
+	/// <summary>Строка этого устройства — прежняя, если она уже была.</summary>
+	private DeviceRow Row(AudioEndpoint device)
 	{
-		var byId = _rows.ToDictionary(row => row.Device.Id);
-
-		for (var index = 0; index < devices.Count; index++)
+		if (_byId.TryGetValue(device.Id, out var row))
 		{
-			var device = devices[index];
-			if (byId.TryGetValue(device.Id, out var row))
+			row.Update(device);
+
+			return row;
+		}
+
+		return _byId[device.Id] = new DeviceRow(device);
+	}
+
+	/// <summary>
+	/// Привести список к желаемому, двигая то, что уже есть. Собрать заново было бы короче,
+	/// но тогда на каждое событие Core Audio слетала бы прокрутка и закрывалась раскрытая
+	/// строка — а событий приходит по нескольку в секунду.
+	/// </summary>
+	private void Sync(List<object> wanted)
+	{
+		for (var index = 0; index < wanted.Count; index++)
+		{
+			var at = _items.IndexOf(wanted[index]);
+
+			if (at < 0)
 			{
-				row.Update(device);
-				var at = _rows.IndexOf(row);
-				if (at != index)
-				{
-					_rows.Move(at, index);
-				}
+				_items.Insert(index, wanted[index]);
 			}
-			else
+			else if (at != index)
 			{
-				_rows.Insert(index, new DeviceRow(device));
+				_items.Move(at, index);
 			}
 		}
 
-		var live = devices.Select(device => device.Id).ToHashSet(StringComparer.Ordinal);
-		for (var index = _rows.Count - 1; index >= 0; index--)
+		while (_items.Count > wanted.Count)
 		{
-			if (!live.Contains(_rows[index].Device.Id))
-			{
-				_rows.RemoveAt(index);
-			}
+			_items.RemoveAt(_items.Count - 1);
+		}
+
+		// Устройство исчезло насовсем — забываем и его строку, иначе она вернулась бы
+		// раскрытой через час после того, как гарнитуру унесли.
+		var alive = _items.OfType<DeviceRow>().Select(row => row.Device.Id).ToHashSet(StringComparer.Ordinal);
+
+		foreach (var id in _byId.Keys.Where(id => !alive.Contains(id)).ToList())
+		{
+			_byId.Remove(id);
 		}
 	}
 
-	private void Describe(DeviceRow row, Config config, AudioEndpoint? current)
+	private void Describe(DeviceRow row, Config config, AudioEndpoint? current, List<int> ranks)
 	{
 		var device = row.Device;
 		var rank = config.Rank(device);
@@ -187,6 +238,21 @@ public partial class DeviceList : UserControl
 		row.State = Describe(device.State);
 		row.Mark = blocked ? RowMark.Blocked : rank >= 0 ? RowMark.Priority : undecided ? RowMark.Undecided : RowMark.None;
 		row.Badge = blocked ? "✕" : rank >= 0 ? (rank + 1).ToString() : undecided ? "+" : "";
+
+		// Место в очереди двигают стрелками рядом с ним. Гаснут они у краёв, но считать надо
+		// не по строкам, а по местам правила: одно место может ловить два устройства сразу,
+		// и стрелка у второго из них двигала бы их оба.
+		row.InRule = !blocked && rank >= 0;
+		row.CanRaise = row.InRule && ranks.Any(other => other < rank);
+		row.CanLower = row.InRule && ranks.Any(other => other > rank);
+
+		// «Сделать основным» — то же предложение, что и в карточке над треем: она живёт
+		// четыре секунды, пропустить её нормально, и решение должно оставаться под рукой.
+		row.CanMakeMain = active && !blocked && rank < 0 && !row.Current;
+
+		// Связь поднимают только у Bluetooth: у остального за это отвечает разъём.
+		row.CanLink = device.Bluetooth && device.State is DeviceState.Active or DeviceState.Unplugged;
+		row.LinkText = Localization.Get(active ? "langDisconnect" : "langConnect");
 		row.BadgeHint = blocked ? Localization.Format("langBadgeBlocked", rule)
 			: rank >= 0 ? Localization.Format("langBadgePriority", rank + 1, rule)
 			: undecided ? Localization.Get("langBadgeUndecided") : null;
@@ -208,45 +274,30 @@ public partial class DeviceList : UserControl
 		_ => "langStateNotPresent",
 	});
 
-	private AudioEndpoint? Selected() => (Rows.SelectedItem as DeviceRow)?.Device;
-
-	/// <summary>
-	/// Две кнопки, которые зависят не от правил, а от самого устройства. «Сделать основным» —
-	/// то же предложение, что и в карточке над треем: она живёт четыре секунды, пропустить её
-	/// нормально, и решение должно оставаться под рукой. Связь поднимается и рвётся только у
-	/// Bluetooth: у остального за это отвечает разъём.
-	/// </summary>
-	private void UpdateActions()
+	private void OnSelected(object sender, SelectionChangedEventArgs e)
 	{
-		if (_switcher is not { } switcher)
+		// Заголовок раздела выделять не за что: он не устройство, и держать на нём рамку
+		// значило бы обещать действия, которых у него нет.
+		if (Rows.SelectedItem is SectionRow)
 		{
+			Rows.SelectedItem = null;
+
 			return;
 		}
 
-		var device = Selected();
-		var config = switcher.Rules.For(_flow);
-
-		var undecided = device is { State: DeviceState.Active }
-			&& config.Rank(device) < 0
-			&& !config.Blocks(device)
-			&& device.Id != Endpoints.Current(_flow)?.Id;
-
-		MakeMainButton.Visibility = undecided ? Visibility.Visible : Visibility.Collapsed;
-
-		var linkable = device is { Bluetooth: true, State: DeviceState.Active or DeviceState.Unplugged };
-		LinkButton.Visibility = linkable ? Visibility.Visible : Visibility.Collapsed;
-		LinkButton.Content = Localization.Get(
-			device?.State == DeviceState.Active ? "langDisconnect" : "langConnect");
-	}
-
-	private void OnSelected(object sender, SelectionChangedEventArgs e)
-	{
 		if (!_filling)
 		{
 			Expand(Rows.SelectedItem as DeviceRow);
 		}
+	}
 
-		UpdateActions();
+	private void OnSection(object sender, RoutedEventArgs e)
+	{
+		if ((sender as FrameworkElement)?.DataContext is SectionRow section)
+		{
+			section.Open = !section.Open;
+			Refill();
+		}
 	}
 
 	// Шеврон делает то же самое: он нужен, чтобы раскрытие было видно, а не угадывалось.
@@ -264,7 +315,6 @@ public partial class DeviceList : UserControl
 		_filling = false;
 
 		Expand(row.Expanded ? null : row);
-		UpdateActions();
 	}
 
 	private void OnFlowChecked(object sender, RoutedEventArgs e)
@@ -279,14 +329,17 @@ public partial class DeviceList : UserControl
 
 		// Направления показывают разные наборы устройств: строки прошлого здесь не годятся.
 		Close();
-		_rows.Clear();
+		_items.Clear();
+		_byId.Clear();
 		Refill();
 		FlowChanged?.Invoke(_flow);
 	}
 
+	private static DeviceRow? Of(object sender) => (sender as FrameworkElement)?.DataContext as DeviceRow;
+
 	private void OnMakeMain(object sender, RoutedEventArgs e)
 	{
-		if (Selected() is not { } device)
+		if (Of(sender) is not { Device: var device })
 		{
 			return;
 		}
@@ -301,15 +354,15 @@ public partial class DeviceList : UserControl
 	// когда Core Audio сообщит о смене состояния.
 	private async void OnLink(object sender, RoutedEventArgs e)
 	{
-		if (Selected() is not { } device)
+		if (Of(sender) is not { Device: var device } || sender is not Button button)
 		{
 			return;
 		}
 
-		LinkButton.IsEnabled = false;
+		button.IsEnabled = false;
 		var connect = device.State != DeviceState.Active;
 		var done = await Task.Run(() => connect ? BluetoothAudio.Connect(device) : BluetoothAudio.Disconnect(device));
-		LinkButton.IsEnabled = true;
+		button.IsEnabled = true;
 
 		if (!done)
 		{
@@ -317,15 +370,19 @@ public partial class DeviceList : UserControl
 		}
 	}
 
-	private void OnMakePriority(object sender, RoutedEventArgs e) => Edit((config, device) => config.Prioritise(device));
+	private void OnJoin(object sender, RoutedEventArgs e) => Edit(sender, (config, device) => config.Prioritise(device));
 
-	private void OnMakeBlocked(object sender, RoutedEventArgs e) => Edit((config, device) => config.Block(device));
+	private void OnMakeBlocked(object sender, RoutedEventArgs e) => Edit(sender, (config, device) => config.Block(device));
 
-	// Правило — это подстрока имени, а не устройство: «Сбросить» на одной строке может снять
+	private void OnRaise(object sender, RoutedEventArgs e) => Edit(sender, (config, device) => config.Move(device, -1));
+
+	private void OnLower(object sender, RoutedEventArgs e) => Edit(sender, (config, device) => config.Move(device, +1));
+
+	// Правило — это подстрока имени, а не устройство: крестик на одной строке может снять
 	// общий паттерн, которым живут и соседние устройства. Молча такое делать нельзя.
-	private void OnClearRule(object sender, RoutedEventArgs e)
+	private void OnDrop(object sender, RoutedEventArgs e)
 	{
-		if (Selected() is not { } device)
+		if (Of(sender) is not { Device: var device })
 		{
 			return;
 		}
@@ -346,13 +403,9 @@ public partial class DeviceList : UserControl
 		Apply(config.Clear(device));
 	}
 
-	private void OnMoveUp(object sender, RoutedEventArgs e) => Edit((config, device) => config.Move(device, -1));
-
-	private void OnMoveDown(object sender, RoutedEventArgs e) => Edit((config, device) => config.Move(device, +1));
-
-	private void Edit(Func<Config, AudioEndpoint, Config> change)
+	private void Edit(object sender, Func<Config, AudioEndpoint, Config> change)
 	{
-		if (Selected() is { } device)
+		if (Of(sender) is { Device: var device })
 		{
 			Apply(change(_switcher!.Rules.For(_flow), device));
 		}
@@ -383,18 +436,20 @@ public partial class DeviceList : UserControl
 
 		Close();
 
-		if (row is not { Active: true })
+		if (row is null)
 		{
 			return;
 		}
 
+		// Раскрывается и молчащее устройство: запретить HDMI-выход, которого сейчас нет, —
+		// обычное дело, а раньше до него было не добраться.
 		_open = row;
 		Fill(row);
 		row.Expanded = true;
 
 		// Мерить можно только то, что идёт: пока с микрофона никто не пишет, потока нет,
 		// и полоске нечего показывать. Windows в своей панели звука открывает его за тем же.
-		if (row.Capture)
+		if (row is { Capture: true, Active: true })
 		{
 			_signal = Endpoints.Signal(row.Device);
 			_meter.Start();

@@ -18,6 +18,26 @@ public partial class FooterBar : UserControl
 		SelectLanguage();
 	}
 
+	/// <summary>
+	/// Сколько устройств живо и что говорит приёмник. Это стояло в шапке рядом с именем
+	/// устройства, к которому не относится: счёт — про список, а не про то, что звучит.
+	/// </summary>
+	internal void Status(int active, int total, bool hasProbe, bool? deviceOn)
+	{
+		Counts.Text = Localization.Format("langActiveOf", active, total);
+
+		(ProbeStatus.Text, var colour) = deviceOn switch
+		{
+			true => (Localization.Get("langProbeOn"), "Good"),
+			false => (Localization.Get("langProbeOff"), "Warn"),
+			_ => (Localization.Get("langProbeSilent"), "Muted"),
+		};
+
+		ProbeDot.Fill = (System.Windows.Media.Brush)FindResource(colour);
+		ProbeDot.Visibility = hasProbe ? Visibility.Visible : Visibility.Collapsed;
+		ProbeStatus.Visibility = hasProbe ? Visibility.Visible : Visibility.Collapsed;
+	}
+
 	/// <summary>Отметить язык, выбранный не отсюда.</summary>
 	internal void SelectLanguage()
 	{

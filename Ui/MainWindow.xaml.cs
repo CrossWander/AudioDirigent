@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
@@ -157,6 +158,10 @@ public partial class MainWindow : Window
 	{
 		Current.Refill(Devices.Flow);
 		Devices.Refill();
+
+		var devices = Endpoints.All(Devices.Flow);
+		Footer.Status(devices.Count(device => device.State == DeviceState.Active), devices.Count,
+			_switcher.HasProbe, _switcher.DeviceOn);
 
 		// Список Bluetooth собирается на открытии, но связь может встать или упасть, пока он
 		// открыт — от чужой команды или оттого, что гарнитуру просто выключили. Без этого он

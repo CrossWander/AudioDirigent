@@ -20,6 +20,8 @@
     <sys:String x:Key="langMakePriority">У пріоритет</sys:String>
     <sys:String x:Key="langMakeBlocked">Заборонити</sys:String>
     <sys:String x:Key="langClearRule">Прибрати з правил</sys:String>
+    <sys:String x:Key="langSectionQuiet">Зараз недоступні</sys:String>
+    <sys:String x:Key="langSectionBlocked">Заборонені</sys:String>
     <sys:String x:Key="langMoveUp">Вище</sys:String>
     <sys:String x:Key="langMoveDown">Нижче</sys:String>
 

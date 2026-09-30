@@ -21,6 +21,8 @@
     <sys:String x:Key="langMakePriority">Prioritise</sys:String>
     <sys:String x:Key="langMakeBlocked">Block</sys:String>
     <sys:String x:Key="langClearRule">Clear rule</sys:String>
+    <sys:String x:Key="langSectionQuiet">Not here right now</sys:String>
+    <sys:String x:Key="langSectionBlocked">Blocked</sys:String>
     <sys:String x:Key="langMoveUp">Up</sys:String>
     <sys:String x:Key="langMoveDown">Down</sys:String>
 

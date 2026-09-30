@@ -3,37 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:AudioDirigent">
 
-    <Border Style="{DynamicResource Group}" Padding="20,16">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+    <!-- Одна строка, а не карточка: то же имя стоит и в списке, и повторять его крупным
+         шрифтом в рамке значило бы тратить на него полокна -->
+    <Grid Margin="2,0,2,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-            <StackPanel>
-                <TextBlock Text="{DynamicResource langDefaultDevice}" Style="{DynamicResource GroupHeader}" Margin="0,0,0,4"/>
-                <TextBlock x:Name="DeviceName" Style="{DynamicResource Headline}" Text="—"/>
+        <Ellipse x:Name="StateDot" Width="9" Height="9" Margin="0,0,12,0" VerticalAlignment="Center"
+                 Fill="{DynamicResource Good}"/>
 
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <TextBlock x:Name="DeviceCount" Style="{DynamicResource Caption}"/>
-                    <Ellipse x:Name="ProbeDot" Width="7" Height="7" Margin="16,0,7,0" VerticalAlignment="Center"
-                             Fill="{DynamicResource Muted}"/>
-                    <TextBlock x:Name="ProbeStatus" Style="{DynamicResource Caption}"/>
+        <TextBlock x:Name="DeviceName" Grid.Column="1" Style="{DynamicResource Headline}" Text="—"
+                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
-                    <local:BatteryBar x:Name="Charge" Margin="16,0,0,0" VerticalAlignment="Center"/>
-                </StackPanel>
+        <local:BatteryBar x:Name="Charge" Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center"/>
+
+        <Border x:Name="StateBadge" Grid.Column="3" Margin="16,0,0,0" CornerRadius="999" Padding="12,6"
+                VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="OnBadgeClick"
+                Background="{DynamicResource AccentFaint}">
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="StateBadgeDot" Width="7" Height="7" VerticalAlignment="Center"
+                         Fill="{DynamicResource Good}"/>
+                <TextBlock x:Name="StateText" Style="{DynamicResource Caption}" Margin="7,0,0,0"
+                           VerticalAlignment="Center"/>
             </StackPanel>
-
-            <!-- Значок состояния он же выключатель: щёлкнуть по нему — то же, что нажать паузу -->
-            <Border x:Name="StateBadge" Grid.Column="1" VerticalAlignment="Center" Cursor="Hand"
-                    CornerRadius="9" Padding="14,8" MouseLeftButtonUp="OnBadgeClick"
-                    Background="{DynamicResource AccentFaint}" ToolTip="{DynamicResource langPauseHint}">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse x:Name="StateDot" Width="8" Height="8" VerticalAlignment="Center"
-                             Fill="{DynamicResource Good}"/>
-                    <TextBlock x:Name="StateText" Margin="8,0,0,0" FontWeight="SemiBold" FontSize="12"/>
-                </StackPanel>
-            </Border>
-        </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </UserControl>

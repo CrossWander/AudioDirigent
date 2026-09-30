@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Windows;
+using System;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
 namespace AudioDirigent;
 
-/// <summary>Шапка окна: что играет сейчас, что говорит приёмник и следит ли программа за звуком.</summary>
+/// <summary>Шапка окна: что играет сейчас и следит ли программа за звуком.</summary>
 public partial class CurrentDevice : UserControl
 {
 	private Switcher? _switcher;
@@ -21,28 +19,17 @@ public partial class CurrentDevice : UserControl
 
 	internal void Refill(EDataFlow flow)
 	{
-		if (_switcher is not { } switcher)
+		if (_switcher is null)
 		{
 			return;
 		}
 
-		var devices = Endpoints.All(flow);
 		var current = Endpoints.Current(flow);
 
 		DeviceName.Text = current?.Name ?? Localization.Get("langNone");
+		StateDot.Fill = Paint(current is null ? "Muted" : "Good");
 		Charge.Show(Battery.Of(current?.Node));
-		DeviceCount.Text = Localization.Format("langActiveOf",
-			devices.Count(device => device.State == DeviceState.Active), devices.Count);
 
-		(ProbeStatus.Text, var colour) = (switcher.HasProbe, switcher.DeviceOn) switch
-		{
-			(false, _) => (Localization.Get("langProbeNotFound"), "Muted"),
-			(true, true) => (Localization.Get("langProbeOn"), "Good"),
-			(true, false) => (Localization.Get("langProbeOff"), "Warn"),
-			(true, null) => (Localization.Get("langProbeSilent"), "Muted"),
-		};
-
-		ProbeDot.Fill = Paint(colour);
 		RefreshBadge();
 	}
 
@@ -51,7 +38,7 @@ public partial class CurrentDevice : UserControl
 		var paused = _switcher?.Paused == true;
 
 		StateText.Text = Localization.Get(paused ? "langPausedBadge" : "langWatching");
-		StateDot.Fill = Paint(paused ? "Muted" : "Good");
+		StateBadgeDot.Fill = Paint(paused ? "Muted" : "Good");
 		StateBadge.Background = paused ? Paint("BadgeFill") : Paint("AccentFaint");
 	}
 
