@@ -256,10 +256,10 @@
     <sys:String x:Key="langYes">так</sys:String>
     <sys:String x:Key="langNo">ні</sys:String>
     <sys:String x:Key="langCheckQuietBare">Тихо: лише {0} dB, а свого підсилення у цього пристрою немає. Присуньте мікрофон ближче до рота.</sys:String>
-    <sys:String x:Key="langChargeHint">Заряд: від Windows або з ефіру, якщо його прив'язано</sys:String>
+    <sys:String x:Key="langChargeHint">Заряд: від Windows або з ефіру, якщо його прив'язано. ≈ — це ефір: там заряд відомий з точністю до десятка</sys:String>
     <sys:String x:Key="langBindCharge">Прив'язати заряд</sys:String>
     <sys:String x:Key="langBindListening">Слухаю ефір…</sys:String>
     <sys:String x:Key="langBindNothing">В ефірі нічого. Можливо, ця гарнітура заряд і не оголошує.</sys:String>
-    <sys:String x:Key="langBindDone">{0}, {1} % — прив'язано</sys:String>
-    <sys:String x:Key="langBindManyFound">{0}, {1} % — прив'язано. Поряд ще {2}: звірте, чи те це число.</sys:String>
+    <sys:String x:Key="langBindDone">{0}, {1} — прив'язано</sys:String>
+    <sys:String x:Key="langBindManyFound">{0}, {1} — прив'язано. Поряд ще {2}: звірте, чи те це число.</sys:String>
 </ResourceDictionary>

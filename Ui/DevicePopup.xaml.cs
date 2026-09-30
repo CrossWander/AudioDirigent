@@ -78,7 +78,7 @@ public partial class DevicePopup : Window
 			(true, false) => "langPopupConnected",
 		});
 
-		Charge.Show(arrived ? Battery.Percent(device.Node) : null);
+		Charge.Show(arrived ? Battery.Of(device.Node) : null);
 		ShowAction(device, arrived, becameDefault);
 	}
 

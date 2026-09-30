@@ -51,7 +51,7 @@ internal static unsafe partial class Beacon
 	private static readonly TimeSpan _stale = TimeSpan.FromMinutes(30);
 
 	private static readonly Lock _guard = new();
-	private static readonly Dictionary<string, (int Percent, DateTime Heard)> _heard = [];
+	private static readonly Dictionary<string, (Charge Charge, DateTime Heard)> _heard = [];
 	private static readonly Dictionary<string, Sighting> _sweep = [];
 
 	private static readonly IntPtr _callback = Callback();
@@ -81,7 +81,7 @@ internal static unsafe partial class Beacon
 	}
 
 	/// <summary>Заряд устройства с этим адресом; null — маяк к нему не привязан или давно молчит.</summary>
-	public static int? Charge(string? mac)
+	public static Charge? Heard(string? mac)
 	{
 		if (string.IsNullOrEmpty(mac))
 		{
@@ -98,7 +98,7 @@ internal static unsafe partial class Beacon
 		lock (_guard)
 		{
 			return _heard.TryGetValue(key, out var seen) && DateTime.UtcNow - seen.Heard < _stale
-				? seen.Percent
+				? seen.Charge
 				: null;
 		}
 	}
@@ -390,19 +390,20 @@ internal static unsafe partial class Beacon
 			}
 
 			var key = rule.Key(block);
+			var charge = new Charge(percent, rule.Step);
 
 			lock (_guard)
 			{
 				// Число то же самое — перерисовывать нечего: одно и то же объявление
 				// приходит по нескольку раз в секунду.
-				_fresh |= !_heard.TryGetValue(key, out var was) || was.Percent != percent;
-				_heard[key] = (percent, DateTime.UtcNow);
+				_fresh |= !_heard.TryGetValue(key, out var was) || was.Charge != charge;
+				_heard[key] = (charge, DateTime.UtcNow);
 
 				// В один сеанс одно устройство слышно десятки раз; держим самое близкое,
 				// потому что привязку решает именно оно.
 				if (!_sweep.TryGetValue(key, out var seen) || seen.Signal < signal)
 				{
-					_sweep[key] = new Sighting(key, rule.Name, percent, signal);
+					_sweep[key] = new Sighting(key, rule.Name, charge, signal);
 				}
 			}
 		}

@@ -40,7 +40,8 @@ internal static partial class Battery
 	/// заполняет Windows, и объявления в эфире, которые она игнорирует. Порядок именно
 	/// такой: своё число система знает точно, эфирное приходит с задержкой.
 	/// </summary>
-	public static int? Percent(string? node) => FromWindows(node) ?? Beacon.Charge(Mac(node));
+	public static Charge? Of(string? node) =>
+		FromWindows(node) is { } exact ? new Charge(exact, 1) : Beacon.Heard(Mac(node));
 
 	/// <summary>Адрес Bluetooth устройства за эндпоинтом; null — оно не по радио.</summary>
 	public static string? Mac(string? node)

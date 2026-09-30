@@ -88,7 +88,7 @@ internal sealed class TrayIcon : IDisposable
 			return;
 		}
 
-		var charge = Battery.Percent(device.Node) is { } percent ? $" · {percent}%" : "";
+		var charge = Battery.Of(device.Node) is { } level ? $" · {level.Text}" : "";
 		Tooltip($"{device.Name}{charge}");
 	});
 

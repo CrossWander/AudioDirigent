@@ -30,7 +30,7 @@ public partial class CurrentDevice : UserControl
 		var current = Endpoints.Current(flow);
 
 		DeviceName.Text = current?.Name ?? Localization.Get("langNone");
-		Charge.Show(Battery.Percent(current?.Node));
+		Charge.Show(Battery.Of(current?.Node));
 		DeviceCount.Text = Localization.Format("langActiveOf",
 			devices.Count(device => device.State == DeviceState.Active), devices.Count);
 

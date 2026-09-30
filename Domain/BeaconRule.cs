@@ -115,4 +115,4 @@ internal sealed record BeaconRule(
 
 /// <summary>Услышанный маяк: что нашлось в эфире за один сеанс прослушивания.</summary>
 /// <param name="Signal">Сила сигнала в дБм — по ней выбирают ближайшее устройство при привязке.</param>
-internal sealed record Sighting(string Key, string Name, int Percent, int Signal);
+internal sealed record Sighting(string Key, string Name, Charge Charge, int Signal);

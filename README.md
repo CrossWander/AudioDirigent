@@ -428,7 +428,13 @@ bytes of the block worth reading — a manufacturer packs several kinds of messa
 code. `batteryAt` is the byte holding the level and `part` which half of it (`low`, `high`
 or `whole`). `step` is what one unit means: Apple stores tenths, so `10`. `highest` is the
 largest value that means anything — above it the device is saying *I do not know*, and the
-app shows nothing rather than a confident zero. `modelAt` and `modelLength` mark the bytes
+app shows nothing rather than a confident zero.
+
+**A `step` above 1 is shown as `≈90%`, and the sign is not decoration.** Four bits hold ten
+values, so 97% and 90% leave the headphones as the same number and arrive as the same
+number. A phone showing 97% is not reading the air — it asked the headphones directly, over
+a protocol that needs a connection. Nothing that only listens can do better, so the app
+says how well it knows rather than inventing the last digit. `modelAt` and `modelLength` mark the bytes
 that identify the model; `-1` for a beacon that carries no model.
 
 The one rule above ships in the file. It is a default value, the way `Ctrl+Alt+P` is a

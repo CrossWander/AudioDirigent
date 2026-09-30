@@ -175,7 +175,7 @@ public partial class DeviceList : UserControl
 
 		// Заряд сообщает меньшинство устройств, и «нет заряда» — обычное состояние, а не
 		// сбой: пустое место честнее прочерка, который читался бы как «ноль процентов».
-		row.Charge = Battery.Percent(device.Node) is { } charge ? $"{charge}%" : "";
+		row.Charge = Battery.Of(device.Node)?.Text ?? "";
 
 		// Кнопка привязки предлагается только там, где она может что-то дать: устройство
 		// по радио, а числа до сих пор нет. Как только заряд появился, кнопка уходит.
@@ -565,8 +565,8 @@ public partial class DeviceList : UserControl
 		Store.Save();
 
 		row.BindNote = found.Count > 1
-			? Localization.Format("langBindManyFound", best.Name, best.Percent, found.Count - 1)
-			: Localization.Format("langBindDone", best.Name, best.Percent);
+			? Localization.Format("langBindManyFound", best.Name, best.Charge.Text, found.Count - 1)
+			: Localization.Format("langBindDone", best.Name, best.Charge.Text);
 
 		Refill();
 	}

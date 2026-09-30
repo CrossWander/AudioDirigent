@@ -257,10 +257,10 @@
     <sys:String x:Key="langYes">yes</sys:String>
     <sys:String x:Key="langNo">no</sys:String>
     <sys:String x:Key="langCheckQuietBare">Quiet: only {0} dB, and this device has no gain of its own. Move the microphone closer to your mouth.</sys:String>
-    <sys:String x:Key="langChargeHint">Battery: from Windows, or from the air once bound</sys:String>
+    <sys:String x:Key="langChargeHint">Battery: from Windows, or from the air once bound — ≈ means the air, which knows it only to the nearest ten</sys:String>
     <sys:String x:Key="langBindCharge">Find the charge</sys:String>
     <sys:String x:Key="langBindListening">Listening to the air…</sys:String>
     <sys:String x:Key="langBindNothing">Nothing in the air. This headset may not announce its charge at all.</sys:String>
-    <sys:String x:Key="langBindDone">{0}, {1}% — bound</sys:String>
-    <sys:String x:Key="langBindManyFound">{0}, {1}% — bound. {2} more nearby: check the number is right.</sys:String>
+    <sys:String x:Key="langBindDone">{0}, {1} — bound</sys:String>
+    <sys:String x:Key="langBindManyFound">{0}, {1} — bound. {2} more nearby: check the number is right.</sys:String>
 </ResourceDictionary>

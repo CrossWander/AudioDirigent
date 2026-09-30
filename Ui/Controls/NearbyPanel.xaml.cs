@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,6 +28,11 @@ internal sealed record NearbyRow(
 /// </summary>
 public partial class NearbyPanel : UserControl
 {
+	// Связь встаёт за секунду-другую, но бывает и дольше; шесть секунд — предел, после
+	// которого честнее показать как есть, чем держать кнопку погашенной.
+	private const int _beat = 300;
+	private const int _patience = 20;
+
 	private Switcher? _switcher;
 	private bool _loading;
 	private bool _busy;
@@ -114,15 +120,44 @@ public partial class NearbyPanel : UserControl
 
 		_busy = true;
 		var connect = !row.Connected;
-		var done = await Task.Run(() => connect ? BluetoothAudio.Connect(endpoint) : BluetoothAudio.Disconnect(endpoint));
-		_busy = false;
 
-		if (!done)
+		// Кнопка гаснет на время ожидания: иначе она секунду-другую зовётся по-старому,
+		// и по ней успевают нажать второй раз — отменяя то, что только что просили.
+		if (sender is Button button)
+		{
+			button.IsEnabled = false;
+		}
+
+		var done = await Task.Run(() => connect ? BluetoothAudio.Connect(endpoint) : BluetoothAudio.Disconnect(endpoint));
+
+		// Команда возвращается сразу, а состояние меняется позже. Перечитать список прямо
+		// здесь — значит показать прежнее: у только что отключённого устройства осталась бы
+		// кнопка «Отключить» и зелёная точка, и выглядело бы это как несработавшее нажатие.
+		if (done)
+		{
+			await Task.Run(() => Settle(row.Device.Mac, connect));
+		}
+		else
 		{
 			_switcher?.Log(connect ? "langLogConnectFailed" : "langLogDisconnectFailed", row.Name);
 		}
 
+		_busy = false;
 		Reload();
+	}
+
+	/// <summary>Дождаться, пока радиомодуль признает новое состояние; молча сдаться по времени.</summary>
+	private static void Settle(string mac, bool connected)
+	{
+		for (var beat = 0; beat < _patience; beat++)
+		{
+			Thread.Sleep(_beat);
+
+			if (Bluetooth.Devices().FirstOrDefault(device => device.Mac == mac)?.Connected == connected)
+			{
+				return;
+			}
+		}
 	}
 
 	// Знакомство ведёт Windows: у неё уже есть и сверка кода, и ввод пин-кода, и перевод

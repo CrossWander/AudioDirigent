@@ -237,7 +237,7 @@ internal static class Program
 			foreach (var device in Audio.ListDevices(flow))
 			{
 				var marker = device.Id == current?.Id ? $"  {Localization.Get("langCliDefaultMarker")}" : "";
-				var charge = Battery.Percent(device.Node) is { } percent ? $"{percent,3}% " : "     ";
+				var charge = Battery.Of(device.Node) is { } level ? $"{level.Text,5} " : "      ";
 				Console.WriteLine($"{device.State,-12} {device.Bus,-10} {device.Form,-11} {charge}{device.Name}{marker}");
 			}
 
@@ -280,14 +280,14 @@ internal static class Program
 
 		foreach (var beacon in found)
 		{
-			Console.WriteLine($"{beacon.Key,-12} {beacon.Percent,5}% {beacon.Signal,6}  {beacon.Name}");
+			Console.WriteLine($"{beacon.Key,-12} {beacon.Charge.Text,6} {beacon.Signal,6}  {beacon.Name}");
 		}
 
 		// Слышно — ещё не значит показано: между эфиром и строкой стоит привязка, и чаще
 		// всего пусто именно из-за неё.
 		foreach (var (key, mac) in Store.Current.BeaconBound)
 		{
-			var charge = Beacon.Charge(mac) is { } percent ? $"{percent}%" : "—";
+			var charge = Beacon.Heard(mac)?.Text ?? "—";
 			Console.WriteLine(Localization.Format("langCliBeaconBound", key, mac, charge));
 		}
 

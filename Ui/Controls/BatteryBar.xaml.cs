@@ -17,7 +17,7 @@ public partial class BatteryBar : UserControl
 	public BatteryBar() => InitializeComponent();
 
 	/// <summary>Показать заряд; null — устройство его не сообщает, и батарейки просто нет.</summary>
-	public void Show(int? charge)
+	internal void Show(Charge? charge)
 	{
 		if (charge is not { } level)
 		{
@@ -27,7 +27,7 @@ public partial class BatteryBar : UserControl
 		}
 
 		Visibility = Visibility.Visible;
-		Percent.Text = $"{level}%";
-		Fill.Width = Math.Max(1, _inside * Math.Clamp(level, 0, 100) / 100.0);
+		Percent.Text = level.Text;
+		Fill.Width = Math.Max(1, _inside * Math.Clamp(level.Percent, 0, 100) / 100.0);
 	}
 }
