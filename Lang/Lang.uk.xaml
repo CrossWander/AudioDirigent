@@ -241,4 +241,5 @@
     <sys:String x:Key="langYes">так</sys:String>
     <sys:String x:Key="langNo">ні</sys:String>
     <sys:String x:Key="langCheckQuietBare">Тихо: лише {0} dB, а свого підсилення у цього пристрою немає. Присуньте мікрофон ближче до рота.</sys:String>
+    <sys:String x:Key="langChargeHint">Заряд, як його повідомляє Windows</sys:String>
 </ResourceDictionary>

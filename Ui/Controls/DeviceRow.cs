@@ -38,6 +38,7 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private double _volume;
 	private double _peak;
 	private string _peakText = "";
+	private string _charge = "";
 	private bool _testing;
 	private string _verdict = "";
 	private bool? _verdictGood;
@@ -93,6 +94,9 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Тот же пик в децибелах: на слух «тихо» и «нормально» неотличимы.</summary>
 	public string PeakText { get => _peakText; set => Set(ref _peakText, value); }
+
+	/// <summary>Заряд с процентом; пусто — устройство его не сообщает.</summary>
+	public string Charge { get => _charge; set => Set(ref _charge, value); }
 
 	/// <summary>Идёт проверка: кнопку на это время надо погасить.</summary>
 	public bool Testing { get => _testing; set => Set(ref _testing, value); }

@@ -47,6 +47,7 @@ internal sealed class TrayIcon : IDisposable
 		};
 
 		_switcher.Logged += ShowInTooltip;
+		_switcher.DevicesChanged += ShowCurrentInTooltip;
 		_switcher.Arrived += (device, isDefault) => Announce(device, arrived: true, isDefault);
 		_switcher.Left += device => Announce(device, arrived: false, becameDefault: false);
 		_switcher.Start();
@@ -75,11 +76,23 @@ internal sealed class TrayIcon : IDisposable
 		});
 
 	// Журнал приходит из потока таймера и из COM-колбэка, а NotifyIcon — контрол WinForms:
+	// Значок молчит, пока ничего не происходит, и подсказка — единственное место, где можно
+	// увидеть заряд, не открывая окна. Событие важнее: оно перекрывает её до следующей смены.
+	private void ShowCurrentInTooltip() => Application.Current.Dispatcher.BeginInvoke(() =>
+	{
+		if (Audio.GetDefault(EDataFlow.Render, ERole.Multimedia) is not { } device)
+		{
+			return;
+		}
+
+		var charge = Battery.Percent(device.Node) is { } percent ? $" · {percent}%" : "";
+		Tooltip($"{device.Name}{charge}");
+	});
+
 	// его свойства можно трогать только с того потока, где он создан.
 	private void ShowInTooltip(LogEntry entry) => Application.Current.Dispatcher.BeginInvoke(() =>
 	{
-		var text = $"AudioDirigent — {Localization.Of(entry)}";
-		_icon.Text = text.Length <= 63 ? text : text[..63];
+		Tooltip(Localization.Of(entry));
 
 		var said = Localization.Of(entry.Message);
 		if (Store.Current.Notify && _switchKeys.Contains(entry.Message.Key)
@@ -168,6 +181,12 @@ internal sealed class TrayIcon : IDisposable
 	{
 		using var stream = Application.GetResourceStream(new Uri(name, UriKind.Relative))!.Stream;
 		return new Icon(stream);
+	}
+
+	private void Tooltip(string text)
+	{
+		var full = $"AudioDirigent — {text}";
+		_icon.Text = full.Length <= 63 ? full : full[..63];
 	}
 
 	public void Dispose()

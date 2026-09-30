@@ -169,6 +169,10 @@ public partial class DeviceList : UserControl
 		var undecided = active && !blocked && rank < 0;
 		var level = Volume.For(device);
 
+		// Заряд сообщает меньшинство устройств, и «нет заряда» — обычное состояние, а не
+		// сбой: пустое место честнее прочерка, который читался бы как «ноль процентов».
+		row.Charge = Battery.Percent(device.Node) is { } charge ? $"{charge}%" : "";
+
 		row.Active = active;
 		row.Current = device.Id == current?.Id;
 		row.State = Describe(device.State);
