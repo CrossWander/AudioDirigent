@@ -431,10 +431,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource RowHover}"/>
                         </Trigger>
+                        <!-- Раскрытая строка обведена по краю: заливкой её от полотна почти
+                             не отличить, а отличать нужно — под ней целая панель. -->
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Selected}"/>
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource RowOpen}"/>
+                            <Setter TargetName="Chrome" Property="BorderThickness" Value="1"/>
+                            <Setter TargetName="Chrome" Property="CornerRadius" Value="8"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
