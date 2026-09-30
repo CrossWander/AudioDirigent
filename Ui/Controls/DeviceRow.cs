@@ -39,6 +39,9 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 	private double _peak;
 	private string _peakText = "";
 	private string _charge = "";
+	private bool _canBind;
+	private bool _pairing;
+	private string _bindNote = "";
 	private bool _testing;
 	private string _verdict = "";
 	private bool? _verdictGood;
@@ -97,6 +100,15 @@ internal sealed class DeviceRow(AudioEndpoint device) : INotifyPropertyChanged
 
 	/// <summary>Заряд с процентом; пусто — устройство его не сообщает.</summary>
 	public string Charge { get => _charge; set => Set(ref _charge, value); }
+
+	/// <summary>Заряда нет, но устройство по радио: возможно, оно кричит его в эфир.</summary>
+	public bool CanBind { get => _canBind; set => Set(ref _canBind, value); }
+
+	/// <summary>Идёт привязка: кнопку на эти секунды надо погасить.</summary>
+	public bool Pairing { get => _pairing; set => Set(ref _pairing, value); }
+
+	/// <summary>Чем кончилась привязка. Пусто — её ещё не запускали.</summary>
+	public string BindNote { get => _bindNote; set => Set(ref _bindNote, value); }
 
 	/// <summary>Идёт проверка: кнопку на это время надо погасить.</summary>
 	public bool Testing { get => _testing; set => Set(ref _testing, value); }

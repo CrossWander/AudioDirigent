@@ -39,6 +39,7 @@ internal static class Program
 			"--devices" => DevicesMode,
 			"--bluetooth" => () => BluetoothMode(args.Skip(1).FirstOrDefault() == "scan"),
 			"--mic" => MicrophoneMode,
+			"--beacons" => BeaconMode,
 			"--recover" => RecoverMode,
 			"--autostart" => () => AutostartMode(args.Skip(1).FirstOrDefault()),
 			"--help" or "-h" or "/?" => Usage,
@@ -71,6 +72,9 @@ internal static class Program
 		using var tray = new TrayIcon(showWindow: mode != "--tray");
 
 		Autostart.Repair();
+
+		// Эфир слушается фоном: часть гарнитур сообщает заряд только так.
+		Beacon.Begin();
 
 		// Ошибка в обработчике UI не должна убивать программу: она живёт в трее часами.
 		app.DispatcherUnhandledException += (_, e) =>
@@ -258,6 +262,64 @@ internal static class Program
 	// подключённая сразу двумя профилями, и виртуальный драйвер вдобавок. Считаем его на
 	// выдуманных — ошибка в приоритетах тихая и обнаруживается уже пропавшим звуком.
 	// Имена устройств здесь — данные, а не текст для чтения: по ним ищутся паттерны.
+	// Что слышно в эфире прямо сейчас. Нужно, когда заряд не появился: отсюда видно, дошло
+	// ли объявление вообще и какой ключ у него вышел — то есть чья это ошибка, правила или
+	// привязки. Без этого разбираться пришлось бы вслепую, глядя на пустое место в строке.
+	private static int BeaconMode()
+	{
+		var found = Beacon.Sweep(10);
+
+		if (found.Count == 0)
+		{
+			Console.WriteLine(Localization.Get("langCliNoBeacons"));
+
+			return 0;
+		}
+
+		Console.WriteLine(Localization.Get("langCliBeaconHeader"));
+
+		foreach (var beacon in found)
+		{
+			Console.WriteLine($"{beacon.Key,-12} {beacon.Percent,5}% {beacon.Signal,6}  {beacon.Name}");
+		}
+
+		// Слышно — ещё не значит показано: между эфиром и строкой стоит привязка, и чаще
+		// всего пусто именно из-за неё.
+		foreach (var (key, mac) in Store.Current.BeaconBound)
+		{
+			var charge = Beacon.Charge(mac) is { } percent ? $"{percent}%" : "—";
+			Console.WriteLine(Localization.Format("langCliBeaconBound", key, mac, charge));
+		}
+
+		return 0;
+	}
+
+	// Настоящее объявление AirPods Max, снятое приёмником: 0719 — заголовок, 0A20 — модель,
+	// 09 — заряд в младшем полубайте. Правило в config.json человек правит руками, и ошибка
+	// в смещении не падает, а тихо показывает чужое число — поэтому разбор проверяется.
+	private static string[] CheckBeacon()
+	{
+		var rule = BeaconRule.Seed;
+		var block = Convert.FromHexString("0719010A20020980050F45D58AE7C6A9ABA82BFC54FC84E2A314D5");
+		var empty = Convert.FromHexString("0719010A2002FF80050F45D58AE7C6A9ABA82BFC54FC84E2A314D5");
+		var other = Convert.FromHexString("121930AE90B9C4562BF298C8B3CB6633E6D231BC1EC920BFDB0347");
+
+		(bool Ok, string Rule)[] checks =
+		[
+			(rule.Maker == 0x004C, "langBeaconMaker"),
+			(rule.Level(block) == 90, "langBeaconLevel"),
+			(rule.Key(block) == "004C-0A20", "langBeaconKey"),
+			(rule.Level(empty) is null, "langBeaconUnknown"),
+			(rule.Level(other) is null, "langBeaconPrefix"),
+			(rule.Level(block.AsSpan(0, 4)) is null, "langBeaconShort"),
+			(rule with { Part = BeaconPart.High } is var high && high.Level(block) == 0, "langBeaconHalf"),
+			(rule with { Part = BeaconPart.Whole, Step = 1, Highest = 100 } is var whole
+				&& whole.Level(block) == 9 && whole.Level(empty) is null, "langBeaconWhole"),
+		];
+
+		return [.. checks.Where(check => !check.Ok).Select(check => Localization.Get(check.Rule))];
+	}
+
 	private static string[] CheckRule()
 	{
 		static AudioEndpoint Device(string id, string name, string bus) =>
@@ -430,6 +492,14 @@ internal static class Program
 		}
 
 		Console.WriteLine(Localization.Get("langCliRuleOk"));
+
+		if (CheckBeacon() is { Length: > 0 } misread)
+		{
+			Console.WriteLine(Localization.Format("langCliBeaconFail", string.Join("; ", misread)));
+			return 1;
+		}
+
+		Console.WriteLine(Localization.Get("langCliBeaconOk"));
 
 		if (!CheckJournal())
 		{

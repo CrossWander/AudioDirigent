@@ -83,9 +83,14 @@ recognisable by being uniform; system icons are a lottery of stock renders and g
 rectangles.
 
 **The battery line appears when there is a battery to show**, which is rarer than it
-sounds. Windows fills that property for some Bluetooth devices and never for a headset on a
-2.4 GHz receiver — to the system that is a generic HID device, and only the manufacturer's
-own protocol knows the charge. So the line missing is the normal state, not a failure.
+sounds. A charge can arrive three ways, and plenty of devices offer none of them. Windows
+fills a PnP property for some Bluetooth devices, and never for a headset on a 2.4 GHz
+receiver — to the system that is a generic HID device. Others tell Windows nothing but
+shout the number into the air, where anything nearby can hear it; the app listens, once you
+have told it which advertisement belongs to which headset — see
+[the beacon](#the-beacon-for-a-charge-windows-never-sees). The rest answer nothing but
+their manufacturer's own protocol over HID. So the line missing is the normal state, not a
+failure.
 
 Balloons stay where they were, with their own switch: a failed repair or a taken hotkey is
 not about a device, and a card with a picture of headphones does not suit it.
@@ -281,7 +286,7 @@ The sources sit in eight places, one namespace for all of them:
 | `Audio/`    | the point of the app: the watcher loop, the rules, the one door into sound |
 | `App/`      | its own housekeeping: the settings file, the journal, the build version    |
 | `Interop/`  | the bindings: Core Audio, device topology, Bluetooth, HID and SetupAPI     |
-| `Platform/` | what those make the system do: PnP restart, scheduler task, USB power      |
+| `Platform/` | what the system will do and tell: PnP restart, scheduler task, USB power, charge |
 | `Ui/`       | the window and its parts, the theme, the tray, the hotkeys, the card       |
 | `Lang/`     | language: one dictionary per language, and the code that switches them     |
 
@@ -300,6 +305,13 @@ from Windows is reached through hand-written P/Invoke: the battery property, the
 properties and the connection events are all the same PnP database WinRT would read, and
 moving to a WinRT target framework costs six megabytes of projection in the published exe —
 measured, not guessed — that trimming cannot remove, because WPF forbids trimming outright.
+
+One thing genuinely lives only in WinRT: `BluetoothLEAdvertisementWatcher`, the single way
+Windows will let anything read an advertisement. `Platform/Beacon.cs` reaches it without
+the projection — `RoGetActivationFactory` is one P/Invoke, the interfaces are a handful of
+GUIDs and vtable slots, and the event handler is forty lines of COM. The slot numbers were
+read out of `System32\WinMetadata`, not remembered: in this interface `Start` comes *before*
+`add_Received`, and a plausible guess at the order fails silently, subscribing to nothing.
 
 ## Configuration
 
@@ -382,6 +394,65 @@ Use it as a shape to copy, not as something the app assumes.
 To see what your machine exposes and what your receiver answers:
 `AudioDirigent.exe --devices`.
 
+### The beacon, for a charge Windows never sees
+
+Some headphones never tell Windows their battery level and never answer a question about
+it. They announce it, unprompted, in their Bluetooth advertisements — a few bytes repeated
+every second or so, readable by any receiver in range without pairing, connecting or asking
+permission. Apple's AirPods work this way, and they are not the only ones.
+
+The app knows no manufacturer. It knows that some bytes in an advertisement are a battery
+level, and a rule says which:
+
+```json
+"beacons": [
+  {
+    "name": "Apple",
+    "company": "004C",
+    "prefix": "0719",
+    "modelAt": 3,
+    "modelLength": 2,
+    "batteryAt": 6,
+    "part": "low",
+    "step": 10,
+    "highest": 10
+  }
+],
+"beaconSeconds": 6,
+"beaconMinutes": 5,
+"beaconBound": { "004C-0A20": "08FF441DDF85" }
+```
+
+`company` is the manufacturer's code from the Bluetooth registry and `prefix` the first
+bytes of the block worth reading — a manufacturer packs several kinds of message under one
+code. `batteryAt` is the byte holding the level and `part` which half of it (`low`, `high`
+or `whole`). `step` is what one unit means: Apple stores tenths, so `10`. `highest` is the
+largest value that means anything — above it the device is saying *I do not know*, and the
+app shows nothing rather than a confident zero. `modelAt` and `modelLength` mark the bytes
+that identify the model; `-1` for a beacon that carries no model.
+
+The one rule above ships in the file. It is a default value, the way `Ctrl+Alt+P` is a
+default hotkey — editable, deletable, and not knowledge living in the code. An empty
+`beacons` list turns the radio off entirely.
+
+**Binding is a manual act, once per device**, and it has to be. An advertisement carries no
+name, and the address in it rotates every few minutes precisely so that nobody can follow a
+device around by it. What stays constant is the model code — and a model code is not a
+device: two people with the same headphones in one room broadcast the same one. So the
+**Find the charge** button in the expanded row listens for ten seconds and binds the
+*strongest* signal, on the assumption that the headphones you just pressed a button about
+are the ones on your head. Signal strength decides this once, at the moment you say *this
+one is mine*, and never again — afterwards the model code is enough, and you can walk away
+from the machine without the number changing. If more than one device answered, the app
+says so instead of quietly picking.
+
+Listening is not continuous: `beaconSeconds` at a time, every `beaconMinutes`. A radio
+scanning without pause is a laptop battery going down for a number that moves once an hour.
+Set `beaconMinutes` to `0` and the app stops listening.
+
+To see what is in the air around you, and whether a binding resolves:
+`AudioDirigent.exe --beacons`.
+
 ## Autostart
 
 The **Run at logon** toggle creates one task, `AudioDirigent`, that starts
@@ -424,6 +495,7 @@ the code to `Localization.Codes`.
 | `--list`                | every device with its state, bus and kind, and the current default |
 | `--test`                | self-check: the rule, the dictionaries, the card, the switching  |
 | `--devices`             | HID interfaces and the probe's answer, if one is set up          |
+| `--beacons`             | battery levels shouted into the air nearby, and what they bind to |
 | `--recover`             | bring vanished devices back                                      |
 | `--autostart [on\|off]` | query, create or remove the scheduler task                       |
 
@@ -483,7 +555,11 @@ All of them change the default device through the same `IPolicyConfig`:
   the KS route to connecting Bluetooth audio, and the reasoning behind it
 - [SpriteOvO/AirPodsDesktop](https://github.com/SpriteOvO/AirPodsDesktop) and
   [timschneeb/GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient) — the
-  connection card, for AirPods and Galaxy Buds respectively
+  connection card, for AirPods and Galaxy Buds respectively. AirPodsDesktop is also where
+  the field order of Apple's advertisement is set down clearly enough to check a guess
+  against; [furiousMAC/continuity](https://github.com/furiousMAC/continuity) documents the
+  message itself. Both are GPLv3 and this project is Apache 2.0, so they were read, not
+  borrowed from
 - [o0Zz/PeripheralBatteryMonitor](https://github.com/o0Zz/PeripheralBatteryMonitor) — the
   battery property and per-vendor protocols on top of it
 - [sgiurgiu/DefaultAudioChanger](https://github.com/sgiurgiu/DefaultAudioChanger),

@@ -35,8 +35,29 @@ internal static partial class Battery
 	// MAX_DEVICE_ID_LEN с запасом.
 	private const uint _idLength = 256;
 
-	/// <summary>Заряд в процентах для узла PnP; null — Windows его не знает.</summary>
-	public static int? Percent(string? node)
+	/// <summary>
+	/// Заряд в процентах; null — его не знает никто. Источника два: свойство PnP, которое
+	/// заполняет Windows, и объявления в эфире, которые она игнорирует. Порядок именно
+	/// такой: своё число система знает точно, эфирное приходит с задержкой.
+	/// </summary>
+	public static int? Percent(string? node) => FromWindows(node) ?? Beacon.Charge(Mac(node));
+
+	/// <summary>Адрес Bluetooth из пути узла; null — устройство не по радио.</summary>
+	public static string? Mac(string? node)
+	{
+		if (string.IsNullOrEmpty(node))
+		{
+			return null;
+		}
+
+		// Берём последнее совпадение, а не первое: раньше адреса в имени службы стоит
+		// хвост базового UUID Bluetooth, 00805F9B34FB, и он у всех устройств один.
+		var matches = MacAddress().Matches(node);
+
+		return matches.Count > 0 ? matches[^1].Value.ToUpperInvariant() : null;
+	}
+
+	private static int? FromWindows(string? node)
 	{
 		if (string.IsNullOrEmpty(node) || CM_Locate_DevNode(out var devInst, node, 0) != _crSuccess)
 		{
@@ -111,12 +132,7 @@ internal static partial class Battery
 			return null;
 		}
 
-		var id = Encoding.Unicode.GetString(buffer).TrimEnd('\0');
-		// Берём последнее совпадение, а не первое: раньше адреса в имени службы стоит
-		// хвост базового UUID Bluetooth, 00805F9B34FB, и он у всех устройств один.
-		var matches = MacAddress().Matches(id);
-
-		return matches.Count > 0 ? matches[^1].Value.ToUpperInvariant() : null;
+		return Mac(Encoding.Unicode.GetString(buffer).TrimEnd('\0'));
 	}
 
 	[GeneratedRegex("(?<![0-9A-Fa-f])[0-9A-Fa-f]{12}(?![0-9A-Fa-f])")]

@@ -63,6 +63,10 @@ public partial class DeviceList : UserControl
 	// Пять секунд: меньше — не успеешь сказать фразу, больше — стоишь и ждёшь.
 	private static readonly TimeSpan _listen = TimeSpan.FromSeconds(5);
 
+	// Привязка слушает дольше обычного обхода: объявления приходят пачками с паузами, и
+	// за пару секунд ближайшее устройство можно просто не застать.
+	private const int _bindSeconds = 10;
+
 	public DeviceList()
 	{
 		InitializeComponent();
@@ -172,6 +176,11 @@ public partial class DeviceList : UserControl
 		// Заряд сообщает меньшинство устройств, и «нет заряда» — обычное состояние, а не
 		// сбой: пустое место честнее прочерка, который читался бы как «ноль процентов».
 		row.Charge = Battery.Percent(device.Node) is { } charge ? $"{charge}%" : "";
+
+		// Кнопка привязки предлагается только там, где она может что-то дать: устройство
+		// по радио, а числа до сих пор нет. Как только заряд появился, кнопка уходит.
+		row.CanBind = row.Charge.Length == 0 && Battery.Mac(device.Node) is not null
+			&& Store.Current.Beacons.Count > 0;
 
 		row.Active = active;
 		row.Current = device.Id == current?.Id;
@@ -519,6 +528,47 @@ public partial class DeviceList : UserControl
 		row.Testing = true;
 		row.VerdictGood = null;
 		row.Verdict = Localization.Get("langCheckSpeak");
+	}
+
+	/// <summary>
+	/// Привязать заряд из эфира к этому устройству. Объявления не подписаны именем, а адрес
+	/// в них меняется по таймеру, поэтому связать их с гарнитурой может только человек:
+	/// он один знает, что она сейчас на голове, а не у соседа за стеной.
+	/// </summary>
+	private async void OnBind(object sender, RoutedEventArgs e)
+	{
+		if ((sender as FrameworkElement)?.DataContext is not DeviceRow row
+			|| Battery.Mac(row.Device.Node) is not { } mac)
+		{
+			return;
+		}
+
+		row.Pairing = true;
+		row.BindNote = Localization.Get("langBindListening");
+
+		var found = await Task.Run(() => Beacon.Sweep(_bindSeconds));
+
+		row.Pairing = false;
+
+		if (found.Count == 0)
+		{
+			row.BindNote = Localization.Get("langBindNothing");
+
+			return;
+		}
+
+		// Самый громкий — тот, что ближе всех. Сила сигнала решает здесь и только здесь:
+		// один раз, в секунду, когда человек сам сказал «это моё». Дальше устройство
+		// узнают по коду модели, и подходить к нему для этого не надо.
+		var best = found[0];
+		Store.Current.BeaconBound[best.Key] = mac;
+		Store.Save();
+
+		row.BindNote = found.Count > 1
+			? Localization.Format("langBindManyFound", best.Name, best.Percent, found.Count - 1)
+			: Localization.Format("langBindDone", best.Name, best.Percent);
+
+		Refill();
 	}
 
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.

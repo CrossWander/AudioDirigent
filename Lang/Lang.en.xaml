@@ -104,6 +104,7 @@
     <sys:String x:Key="langClearShared">The rules "{0}" govern more than the selected device. Remove them anyway?</sys:String>
     <sys:String x:Key="langLogSwitchError">ERROR while switching: {0}</sys:String>
     <sys:String x:Key="langLogUiError">UI ERROR: {0}</sys:String>
+    <sys:String x:Key="langLogBeaconFailed">Could not listen to the air: {0}</sys:String>
     <sys:String x:Key="langSchedulerTitle">Task Scheduler</sys:String>
 
     <sys:String x:Key="langMinimize">Minimise to tray</sys:String>
@@ -125,6 +126,7 @@
   --once                apply the rule once and exit
   --list                list the output devices and the current default
   --test                self-check: switching really works
+  --beacons             battery levels shouted into the air nearby
   --devices             HID interfaces and the probe's answer, if one is set up
   --recover             bring vanished devices back: reinstall them and, if
                         needed, restart the audio service
@@ -170,6 +172,19 @@
     <sys:String x:Key="langCliJournalFail">FAILED: a journal entry did not come back from the file unchanged.</sys:String>
     <sys:String x:Key="langCliRuleOk">OK: the device selection rule computes correctly.</sys:String>
     <sys:String x:Key="langCliRuleFail">FAILED, selection rule: {0}</sys:String>
+    <sys:String x:Key="langCliNoBeacons">Nothing in the air. Either nothing nearby announces its charge, or this machine has no Bluetooth radio.</sys:String>
+    <sys:String x:Key="langCliBeaconHeader" xml:space="preserve">key          charge  signal  rule</sys:String>
+    <sys:String x:Key="langCliBeaconBound">bound: {0} to {1}, charge {2}</sys:String>
+    <sys:String x:Key="langCliBeaconOk">OK: the air-beacon rule parses correctly.</sys:String>
+    <sys:String x:Key="langCliBeaconFail">FAILED, beacon rule: {0}</sys:String>
+    <sys:String x:Key="langBeaconMaker">the company code reads as a number</sys:String>
+    <sys:String x:Key="langBeaconLevel">the battery comes out of the right half-byte</sys:String>
+    <sys:String x:Key="langBeaconKey">the model becomes the key of the binding</sys:String>
+    <sys:String x:Key="langBeaconUnknown">an unavailable battery stays unknown, not zero</sys:String>
+    <sys:String x:Key="langBeaconPrefix">a block with another prefix is left alone</sys:String>
+    <sys:String x:Key="langBeaconShort">a block too short to hold the battery is refused</sys:String>
+    <sys:String x:Key="langBeaconHalf">the other half-byte is read as the other half-byte</sys:String>
+    <sys:String x:Key="langBeaconWhole">a whole-byte rule reads the byte whole and refuses what is above its ceiling</sys:String>
     <sys:String x:Key="langCliActiveDevices">Active output devices: {0}, current default: {1}</sys:String>
     <sys:String x:Key="langCliNoActive">SKIPPED: there are no active output devices.</sys:String>
     <sys:String x:Key="langCliSameFail">FAILED: assigning the same device cleared the default.</sys:String>
@@ -242,5 +257,10 @@
     <sys:String x:Key="langYes">yes</sys:String>
     <sys:String x:Key="langNo">no</sys:String>
     <sys:String x:Key="langCheckQuietBare">Quiet: only {0} dB, and this device has no gain of its own. Move the microphone closer to your mouth.</sys:String>
-    <sys:String x:Key="langChargeHint">Battery, as Windows reports it</sys:String>
+    <sys:String x:Key="langChargeHint">Battery: from Windows, or from the air once bound</sys:String>
+    <sys:String x:Key="langBindCharge">Find the charge</sys:String>
+    <sys:String x:Key="langBindListening">Listening to the air…</sys:String>
+    <sys:String x:Key="langBindNothing">Nothing in the air. This headset may not announce its charge at all.</sys:String>
+    <sys:String x:Key="langBindDone">{0}, {1}% — bound</sys:String>
+    <sys:String x:Key="langBindManyFound">{0}, {1}% — bound. {2} more nearby: check the number is right.</sys:String>
 </ResourceDictionary>

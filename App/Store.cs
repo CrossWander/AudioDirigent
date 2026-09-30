@@ -61,6 +61,22 @@ internal static class Store
 
 		/// <summary>Показывать и скрытые тоже — иначе спрятанное по ошибке не вернуть.</summary>
 		public bool ShowHiddenBluetooth { get; set; }
+
+		/// <summary>
+		/// Правила чтения заряда из объявлений Bluetooth. Одно записано сразу — как «Ctrl+Alt+P»
+		/// в горячей клавише: значение по умолчанию, а не знание программы о производителе.
+		/// Пустой список выключает прослушивание эфира целиком.
+		/// </summary>
+		public List<BeaconRule> Beacons { get; set; } = [BeaconRule.Seed];
+
+		/// <summary>Сколько секунд слушать за раз; приёмник в это время тратит батарею.</summary>
+		public int BeaconSeconds { get; set; } = 6;
+
+		/// <summary>Как часто слушать. 0 — не слушать вовсе.</summary>
+		public int BeaconMinutes { get; set; } = 5;
+
+		/// <summary>Привязка «код модели → адрес устройства»: её делает человек кнопкой в списке.</summary>
+		public Dictionary<string, string> BeaconBound { get; set; } = [];
 	}
 
 	private static readonly string _path = Path.Combine(AppContext.BaseDirectory, "config.json");

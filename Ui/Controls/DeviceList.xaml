@@ -121,6 +121,17 @@
                                                TextWrapping="Wrap"/>
                                 </StackPanel>
 
+                                <!-- Заряд, которого Windows не знает: устройство кричит его в эфир,
+                                     но какое из объявлений чьё — знает только человек -->
+                                <StackPanel x:Name="Bind" Orientation="Horizontal" Margin="0,10,0,0"
+                                            Visibility="Collapsed">
+                                    <Button x:Name="BindButton" Style="{DynamicResource Flat}"
+                                            Content="{DynamicResource langBindCharge}" Click="OnBind"/>
+                                    <TextBlock x:Name="BindNote" Text="{Binding BindNote}" Margin="12,0,52,0"
+                                               VerticalAlignment="Center" Style="{DynamicResource Caption}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+
                                 <CheckBox x:Name="HoldToggle" Style="{DynamicResource Toggle}" Margin="0,14,0,0"
                                           Content="{DynamicResource langLevelHold}"
                                           IsChecked="{Binding Hold, Mode=OneWay}"
@@ -216,6 +227,12 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding VerdictGood}" Value="False">
                                 <Setter TargetName="Verdict" Property="Foreground" Value="{DynamicResource Warn}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CanBind}" Value="True">
+                                <Setter TargetName="Bind" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Pairing}" Value="True">
+                                <Setter TargetName="BindButton" Property="IsEnabled" Value="False"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Bare}" Value="True">
                                 <Setter TargetName="BareNote" Property="Visibility" Value="Visible"/>

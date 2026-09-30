@@ -103,6 +103,7 @@
     <sys:String x:Key="langClearShared">Правила «{0}» действуют не только на выбранное устройство. Убрать их всё равно?</sys:String>
     <sys:String x:Key="langLogSwitchError">ОШИБКА при переключении: {0}</sys:String>
     <sys:String x:Key="langLogUiError">ОШИБКА интерфейса: {0}</sys:String>
+    <sys:String x:Key="langLogBeaconFailed">Не удалось послушать эфир: {0}</sys:String>
     <sys:String x:Key="langSchedulerTitle">Планировщик заданий</sys:String>
 
     <sys:String x:Key="langMinimize">Свернуть в трей</sys:String>
@@ -124,6 +125,7 @@
   --once                применить правило один раз и выйти
   --list                показать устройства вывода и текущее по умолчанию
   --test                самопроверка: переключение действительно работает
+  --beacons             заряды, которые кричат в эфир соседние устройства
   --devices             HID-интерфейсы и ответ приёмника, если он настроен
   --recover             вернуть пропавшие устройства: переустановить их и,
                         если нужно, перезапустить службу звука
@@ -169,6 +171,19 @@
     <sys:String x:Key="langCliJournalFail">ОШИБКА: запись журнала не вернулась из файла в исходном виде.</sys:String>
     <sys:String x:Key="langCliRuleOk">OK: правило выбора устройства считается верно.</sys:String>
     <sys:String x:Key="langCliRuleFail">ПРОВАЛ, правило выбора: {0}</sys:String>
+    <sys:String x:Key="langCliNoBeacons">В эфире ничего. Либо рядом никто не объявляет заряд, либо на этой машине нет радиомодуля Bluetooth.</sys:String>
+    <sys:String x:Key="langCliBeaconHeader" xml:space="preserve">ключ         заряд  сигнал  правило</sys:String>
+    <sys:String x:Key="langCliBeaconBound">привязано: {0} к {1}, заряд {2}</sys:String>
+    <sys:String x:Key="langCliBeaconOk">ОК: правило маяка разбирается верно.</sys:String>
+    <sys:String x:Key="langCliBeaconFail">ОШИБКА, правило маяка: {0}</sys:String>
+    <sys:String x:Key="langBeaconMaker">код производителя читается числом</sys:String>
+    <sys:String x:Key="langBeaconLevel">заряд берётся из нужного полубайта</sys:String>
+    <sys:String x:Key="langBeaconKey">код модели становится ключом привязки</sys:String>
+    <sys:String x:Key="langBeaconUnknown">«не знаю» остаётся неизвестностью, а не нулём</sys:String>
+    <sys:String x:Key="langBeaconPrefix">блок с чужим началом не трогается</sys:String>
+    <sys:String x:Key="langBeaconShort">короткий блок, где заряду не поместиться, отвергается</sys:String>
+    <sys:String x:Key="langBeaconHalf">вторая половина байта читается как вторая половина</sys:String>
+    <sys:String x:Key="langBeaconWhole">правило на целый байт читает байт целиком и отвергает то, что выше потолка</sys:String>
     <sys:String x:Key="langCliActiveDevices">Активных устройств вывода: {0}, сейчас по умолчанию: {1}</sys:String>
     <sys:String x:Key="langCliNoActive">ПРОПУЩЕНО: активных устройств вывода нет.</sys:String>
     <sys:String x:Key="langCliSameFail">ПРОВАЛ: назначение того же устройства сбросило умолчание.</sys:String>
@@ -241,5 +256,10 @@
     <sys:String x:Key="langYes">да</sys:String>
     <sys:String x:Key="langNo">нет</sys:String>
     <sys:String x:Key="langCheckQuietBare">Тихо: всего {0} dB, а своего усиления у этого устройства нет. Придвиньте микрофон ближе ко рту.</sys:String>
-    <sys:String x:Key="langChargeHint">Заряд, как его сообщает Windows</sys:String>
+    <sys:String x:Key="langChargeHint">Заряд: от Windows или из эфира, если он привязан</sys:String>
+    <sys:String x:Key="langBindCharge">Привязать заряд</sys:String>
+    <sys:String x:Key="langBindListening">Слушаю эфир…</sys:String>
+    <sys:String x:Key="langBindNothing">В эфире ничего. Возможно, эта гарнитура заряд и не объявляет.</sys:String>
+    <sys:String x:Key="langBindDone">{0}, {1} % — привязано</sys:String>
+    <sys:String x:Key="langBindManyFound">{0}, {1} % — привязано. Рядом ещё {2}: сверьте, то ли это число.</sys:String>
 </ResourceDictionary>
