@@ -16,7 +16,7 @@
             <TextBlock Text="AudioDirigent" FontSize="15" FontWeight="SemiBold"
                        VerticalAlignment="Center" ToolTip="{DynamicResource langSubtitle}"/>
 
-            <Border x:Name="StateBadge" Margin="14,0,0,0" CornerRadius="999" Padding="11,4"
+            <Border x:Name="StateBadge" Margin="14,0,0,0" CornerRadius="8" Padding="11,4"
                     VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="OnBadgeClick"
                     Background="{DynamicResource AccentFaint}">
                 <StackPanel Orientation="Horizontal">

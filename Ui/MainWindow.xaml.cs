@@ -36,6 +36,7 @@ public partial class MainWindow : Window
 		Bar.Maximise += () => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 		Bar.Close += Close;
 
+		Rounded.Follow(this);
 		Bar.PauseToggled += OnPauseToggled;
 		Devices.FlowChanged += _ => Current.Refill(Devices.Flow);
 		Settings.UpdateChecked += Footer.Show;
