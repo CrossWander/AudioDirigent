@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AudioDirigent;
 
@@ -17,13 +19,21 @@ internal static partial class Battery
 	// DEVPKEY_Bluetooth_Battery: один байт, проценты.
 	private static readonly Guid _format = new("104EA319-6EE2-4701-BD47-8DDBF425BBE5");
 	private const int _propertyId = 2;
-	private const uint _typeByte = 0x0000_0011;
+	// DEVPROP_TYPE_BYTE. Не перепутать с 0x11: это DEVPROP_TYPE_BOOLEAN, и на нём проверка
+	// не совпадала никогда — заряд молчал ровно так же, как если бы его не было.
+	private const uint _typeByte = 0x0000_0003;
 
 	private const int _crSuccess = 0;
 
 	// Свойство висит не на звуковом узле, а на самом устройстве Bluetooth, и сколько между
 	// ними промежуточных узлов — зависит от стека. Поднимаемся, пока не найдём или не упрёмся.
 	private const int _depth = 4;
+
+	// Сколько соседей просмотреть, прежде чем сдаться: у радиомодуля их десятки.
+	private const int _fanOut = 64;
+
+	// MAX_DEVICE_ID_LEN с запасом.
+	private const uint _idLength = 256;
 
 	/// <summary>Заряд в процентах для узла PnP; null — Windows его не знает.</summary>
 	public static int? Percent(string? node)
@@ -40,6 +50,15 @@ internal static partial class Battery
 				return percent;
 			}
 
+			// Заряд объявляет не та служба, через которую идёт звук: у гарнитуры Bluetooth
+			// музыка висит на одной ветке, телефонный профиль на другой, а процент нашёлся
+			// на второй — подъём по родителям мимо неё и проходит. Значит смотрим вбок: у
+			// всех служб одного устройства в имени узла стоит один и тот же адрес.
+			if (Address(devInst) is { } address && Siblings(devInst, address) is { } shared)
+			{
+				return shared;
+			}
+
 			if (CM_Get_Parent(out var parent, devInst, 0) != _crSuccess)
 			{
 				return null;
@@ -50,6 +69,58 @@ internal static partial class Battery
 
 		return null;
 	}
+
+	/// <summary>Заряд у соседней службы того же устройства; null — ни у одной его нет.</summary>
+	private static int? Siblings(uint devInst, string address)
+	{
+		if (CM_Get_Parent(out var parent, devInst, 0) != _crSuccess
+			|| CM_Get_Child(out var child, parent, 0) != _crSuccess)
+		{
+			return null;
+		}
+
+		// Соседей у радиомодуля столько, сколько спарено устройств помножить на их службы:
+		// список конечный, но обходить его целиком незачем — свои службы лежат рядом.
+		for (var seen = 0; seen < _fanOut; seen++)
+		{
+			if (child != devInst && Address(child) == address && Read(child) is { } percent)
+			{
+				return percent;
+			}
+
+			if (CM_Get_Sibling(out var next, child, 0) != _crSuccess)
+			{
+				return null;
+			}
+
+			child = next;
+		}
+
+		return null;
+	}
+
+	/// <summary>Адрес Bluetooth из имени узла — двенадцать шестнадцатеричных цифр подряд.</summary>
+	private static string? Address(uint devInst)
+	{
+		// Буфер байтовый, а длина в знаках: LibraryImport отдаёт массив только того типа,
+		// что лежит в памяти как есть, а char таковым не считается.
+		var buffer = new byte[_idLength * 2];
+
+		if (CM_Get_Device_ID(devInst, buffer, _idLength, 0) != _crSuccess)
+		{
+			return null;
+		}
+
+		var id = Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+		// Берём последнее совпадение, а не первое: раньше адреса в имени службы стоит
+		// хвост базового UUID Bluetooth, 00805F9B34FB, и он у всех устройств один.
+		var matches = MacAddress().Matches(id);
+
+		return matches.Count > 0 ? matches[^1].Value.ToUpperInvariant() : null;
+	}
+
+	[GeneratedRegex("(?<![0-9A-Fa-f])[0-9A-Fa-f]{12}(?![0-9A-Fa-f])")]
+	private static partial Regex MacAddress();
 
 	private static int? Read(uint devInst)
 	{
@@ -76,6 +147,15 @@ internal static partial class Battery
 
 	[LibraryImport("cfgmgr32.dll")]
 	private static partial int CM_Get_Parent(out uint parent, uint devInst, uint flags);
+
+	[LibraryImport("cfgmgr32.dll")]
+	private static partial int CM_Get_Child(out uint child, uint devInst, uint flags);
+
+	[LibraryImport("cfgmgr32.dll")]
+	private static partial int CM_Get_Sibling(out uint sibling, uint devInst, uint flags);
+
+	[LibraryImport("cfgmgr32.dll", EntryPoint = "CM_Get_Device_IDW")]
+	private static partial int CM_Get_Device_ID(uint devInst, [Out] byte[] buffer, uint length, uint flags);
 
 	[LibraryImport("cfgmgr32.dll", EntryPoint = "CM_Get_DevNode_PropertyW")]
 	private static partial int CM_Get_DevNode_Property(uint devInst, ref DEVPROPKEY key, out uint propertyType,

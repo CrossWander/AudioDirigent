@@ -233,7 +233,8 @@ internal static class Program
 			foreach (var device in Audio.ListDevices(flow))
 			{
 				var marker = device.Id == current?.Id ? $"  {Localization.Get("langCliDefaultMarker")}" : "";
-				Console.WriteLine($"{device.State,-12} {device.Bus,-10} {device.Form,-11} {device.Name}{marker}");
+				var charge = Battery.Percent(device.Node) is { } percent ? $"{percent,3}% " : "     ";
+				Console.WriteLine($"{device.State,-12} {device.Bus,-10} {device.Form,-11} {charge}{device.Name}{marker}");
 			}
 
 			Console.WriteLine();
