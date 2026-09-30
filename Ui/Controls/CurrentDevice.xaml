@@ -1,6 +1,7 @@
 <UserControl x:Class="AudioDirigent.CurrentDevice"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:AudioDirigent">
 
     <Border Style="{DynamicResource Group}" Padding="20,16">
         <Grid>
@@ -18,6 +19,8 @@
                     <Ellipse x:Name="ProbeDot" Width="7" Height="7" Margin="16,0,7,0" VerticalAlignment="Center"
                              Fill="{DynamicResource Muted}"/>
                     <TextBlock x:Name="ProbeStatus" Style="{DynamicResource Caption}"/>
+
+                    <local:BatteryBar x:Name="Charge" Margin="16,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
 

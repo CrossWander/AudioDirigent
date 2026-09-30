@@ -48,6 +48,9 @@ internal sealed class TrayIcon : IDisposable
 
 		_switcher.Logged += ShowInTooltip;
 		_switcher.DevicesChanged += ShowCurrentInTooltip;
+
+		// Обход эфира идёт в своём потоке, а подсказка лотка живёт в чужом.
+		Beacon.Changed += () => Application.Current.Dispatcher.BeginInvoke(ShowCurrentInTooltip);
 		_switcher.Arrived += (device, isDefault) => Announce(device, arrived: true, isDefault);
 		_switcher.Left += device => Announce(device, arrived: false, becameDefault: false);
 		_switcher.Start();

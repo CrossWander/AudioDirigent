@@ -45,6 +45,7 @@ public partial class MainWindow : Window
 
 		_switcher.Logged += OnLogged;
 		_switcher.DevicesChanged += OnDevicesChanged;
+		Beacon.Changed += OnDevicesChanged;
 		Localization.Changed += OnLanguageChanged;
 		Theme.Changed += OnThemeChanged;
 
@@ -79,6 +80,7 @@ public partial class MainWindow : Window
 	{
 		_switcher.Logged -= OnLogged;
 		_switcher.DevicesChanged -= OnDevicesChanged;
+		Beacon.Changed -= OnDevicesChanged;
 		Localization.Changed -= OnLanguageChanged;
 		Theme.Changed -= OnThemeChanged;
 	}

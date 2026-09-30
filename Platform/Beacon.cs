@@ -56,6 +56,14 @@ internal static unsafe partial class Beacon
 
 	private static readonly IntPtr _callback = Callback();
 	private static Timer? _timer;
+	private static bool _fresh;
+
+	/// <summary>
+	/// Эфир принёс число, которого не было. Без этого заряд появлялся бы только случайно:
+	/// обход длится несколько секунд, окно успевает нарисоваться раньше и больше себя не
+	/// перерисовывает — устройства-то не менялись.
+	/// </summary>
+	public static event Action? Changed;
 
 	/// <summary>Слушать эфир время от времени, как записано в настройках.</summary>
 	public static void Begin()
@@ -124,6 +132,8 @@ internal static unsafe partial class Beacon
 
 	private static void Session(int seconds)
 	{
+		_fresh = false;
+
 		var watcher = Create();
 
 		if (watcher == IntPtr.Zero)
@@ -160,6 +170,11 @@ internal static unsafe partial class Beacon
 		finally
 		{
 			Release(watcher);
+
+			if (_fresh)
+			{
+				Changed?.Invoke();
+			}
 		}
 	}
 
@@ -378,6 +393,9 @@ internal static unsafe partial class Beacon
 
 			lock (_guard)
 			{
+				// Число то же самое — перерисовывать нечего: одно и то же объявление
+				// приходит по нескольку раз в секунду.
+				_fresh |= !_heard.TryGetValue(key, out var was) || was.Percent != percent;
 				_heard[key] = (percent, DateTime.UtcNow);
 
 				// В один сеанс одно устройство слышно десятки раз; держим самое близкое,

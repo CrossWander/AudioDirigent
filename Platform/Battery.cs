@@ -42,17 +42,52 @@ internal static partial class Battery
 	/// </summary>
 	public static int? Percent(string? node) => FromWindows(node) ?? Beacon.Charge(Mac(node));
 
-	/// <summary>Адрес Bluetooth из пути узла; null — устройство не по радио.</summary>
+	/// <summary>Адрес Bluetooth устройства за эндпоинтом; null — оно не по радио.</summary>
 	public static string? Mac(string? node)
 	{
-		if (string.IsNullOrEmpty(node))
+		// В пути музыкального профиля адрес стоит прямо, а телефонный приходит узлом вида
+		// BTHHFENUM\BthHFPAudio\… — без адреса вовсе. Поэтому не только смотрим на путь, но
+		// и поднимаемся по родителям: иначе одна и та же гарнитура показывала бы заряд в
+		// одной своей строке и молчала в соседней.
+		if (Find(node) is { } plain)
+		{
+			return plain;
+		}
+
+		if (string.IsNullOrEmpty(node) || CM_Locate_DevNode(out var devInst, node, 0) != _crSuccess)
+		{
+			return null;
+		}
+
+		for (var level = 0; level < _depth; level++)
+		{
+			if (Address(devInst) is { } address)
+			{
+				return address;
+			}
+
+			if (CM_Get_Parent(out var parent, devInst, 0) != _crSuccess)
+			{
+				return null;
+			}
+
+			devInst = parent;
+		}
+
+		return null;
+	}
+
+	/// <summary>Двенадцать шестнадцатеричных цифр подряд — так адрес стоит в имени узла.</summary>
+	private static string? Find(string? text)
+	{
+		if (string.IsNullOrEmpty(text))
 		{
 			return null;
 		}
 
 		// Берём последнее совпадение, а не первое: раньше адреса в имени службы стоит
 		// хвост базового UUID Bluetooth, 00805F9B34FB, и он у всех устройств один.
-		var matches = MacAddress().Matches(node);
+		var matches = MacAddress().Matches(text);
 
 		return matches.Count > 0 ? matches[^1].Value.ToUpperInvariant() : null;
 	}
@@ -132,7 +167,7 @@ internal static partial class Battery
 			return null;
 		}
 
-		return Mac(Encoding.Unicode.GetString(buffer).TrimEnd('\0'));
+		return Find(Encoding.Unicode.GetString(buffer).TrimEnd('\0'));
 	}
 
 	[GeneratedRegex("(?<![0-9A-Fa-f])[0-9A-Fa-f]{12}(?![0-9A-Fa-f])")]

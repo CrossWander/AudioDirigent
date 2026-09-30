@@ -78,23 +78,8 @@ public partial class DevicePopup : Window
 			(true, false) => "langPopupConnected",
 		});
 
-		ShowBattery(arrived ? Battery.Percent(device.Node) : null);
+		Charge.Show(arrived ? Battery.Percent(device.Node) : null);
 		ShowAction(device, arrived, becameDefault);
-	}
-
-	private void ShowBattery(int? percent)
-	{
-		if (percent is not { } level)
-		{
-			BatteryRow.Visibility = Visibility.Collapsed;
-			return;
-		}
-
-		BatteryRow.Visibility = Visibility.Visible;
-		BatteryText.Text = $"{level}%";
-
-		// Полоса рисуется долей от ширины корпуса за вычетом его же полей.
-		BatteryFill.Width = Math.Max(1, (22 - 5) * Math.Clamp(level, 0, 100) / 100.0);
 	}
 
 	/// <summary>
