@@ -5,7 +5,7 @@
     <!-- Своего заголовка у журнала больше нет: его открывают из служебной полосы внизу,
          где и стоит всё остальное, что не про устройства -->
     <Border x:Name="Panel" Style="{DynamicResource Group}" Padding="14,12" Height="150"
-            Visibility="Collapsed">
+            Margin="0,0,0,16" Visibility="Collapsed">
         <ScrollViewer x:Name="Scroll" VerticalScrollBarVisibility="Auto">
             <TextBlock x:Name="Text" FontFamily="Cascadia Mono, Consolas" FontSize="12"
                        Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>

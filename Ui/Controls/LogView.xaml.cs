@@ -61,5 +61,5 @@ public partial class LogView : UserControl
 	}
 
 	// Высота панели вместе с отступом: раскрытый журнал не должен съедать список устройств.
-	private static double Extra() => 150 + 8;
+	private static double Extra() => 150 + 16;
 }
