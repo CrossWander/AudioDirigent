@@ -93,6 +93,11 @@ public partial class DevicePopup : Window
 
 		Fill(device, arrived: true, becameDefault: true);
 
+		// «Теперь устройство по умолчанию» — это новость, когда устройство только что
+		// подключилось. Здесь новости нет: карточку позвали, наведя мышь на значок, и то,
+		// что показано именно это устройство, и означает, что оно главное.
+		Status.Visibility = Visibility.Collapsed;
+
 		Show();
 		Place();
 		Rise();
@@ -125,6 +130,7 @@ public partial class DevicePopup : Window
 			(true, false) => "langPopupConnected",
 		});
 
+		Status.Visibility = Visibility.Visible;
 		Charge.Show(arrived ? Battery.Of(device.Node) : null);
 		ShowAction(device, arrived, becameDefault);
 	}
