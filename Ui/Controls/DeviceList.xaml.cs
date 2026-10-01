@@ -52,6 +52,11 @@ public partial class DeviceList : UserControl
 	private EDataFlow _flow = EDataFlow.Render;
 	private readonly DispatcherTimer _meter = new() { Interval = TimeSpan.FromMilliseconds(60) };
 
+	// Громкость меняют и мимо программы: кнопками на клавиатуре, колесом в трее, самой
+	// гарнитурой. Событие об этом Core Audio шлёт в своём потоке и своим интерфейсом, а
+	// спросить уровень стоит одного вызова — для одной раскрытой строки хватит и опроса.
+	private readonly DispatcherTimer _level = new() { Interval = TimeSpan.FromMilliseconds(500) };
+
 	private DeviceRow? _open;
 	private Meter? _signal;
 
@@ -80,6 +85,7 @@ public partial class DeviceList : UserControl
 		InitializeComponent();
 		Rows.ItemsSource = _items;
 		_meter.Tick += (_, _) => ShowPeak();
+		_level.Tick += (_, _) => ShowLevel();
 	}
 
 	/// <summary>Направление сменили — шапке окна пора показать другое устройство.</summary>
@@ -446,6 +452,8 @@ public partial class DeviceList : UserControl
 		// открыть её и не увидеть — то же самое, что не открыть.
 		Rows.ScrollIntoView(row);
 
+		_level.Start();
+
 		// Мерить можно только то, что идёт: пока с микрофона никто не пишет, потока нет,
 		// и полоске нечего показывать. Windows в своей панели звука открывает его за тем же.
 		if (row is { Capture: true, Active: true })
@@ -458,6 +466,7 @@ public partial class DeviceList : UserControl
 	private void Close()
 	{
 		_meter.Stop();
+		_level.Stop();
 		_signal?.Dispose();
 		_signal = null;
 		_until = default;
@@ -507,6 +516,21 @@ public partial class DeviceList : UserControl
 			On = knob.On,
 		})
 	];
+
+	// Пока строка раскрыта, ползунок показывает то, что стоит на устройстве сейчас, а не
+	// то, что стояло в миг раскрытия: иначе он врёт до следующего раскрытия.
+	private void ShowLevel()
+	{
+		// Разница меньше процента — это наш же ход ползунка, вернувшийся округлённым:
+		// в устройство уходит целое число, а ползунок ходит плавно.
+		if (_open is not { } row || Endpoints.Level(row.Device) is not { } percent
+			|| Math.Abs(row.Volume - percent) < 1)
+		{
+			return;
+		}
+
+		row.Volume = percent;
+	}
 
 	private void ShowPeak()
 	{
@@ -628,7 +652,10 @@ public partial class DeviceList : UserControl
 	// Громкость ставится сразу, на каждом шаге ползунка: настраивают её на слух, а не по числу.
 	private void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 	{
-		if ((sender as FrameworkElement)?.DataContext is DeviceRow row && row.Expanded)
+		// Ползунок двинулся не рукой, а вслед за устройством: писать прочитанное обратно
+		// значило бы спорить с тем, кто крутит громкость кнопками.
+		if ((sender as FrameworkElement)?.DataContext is DeviceRow row && row.Expanded
+			&& Math.Abs(e.NewValue - row.Volume) >= 1)
 		{
 			row.Volume = e.NewValue;
 			Endpoints.SetLevel(row.Device, (int)e.NewValue);
