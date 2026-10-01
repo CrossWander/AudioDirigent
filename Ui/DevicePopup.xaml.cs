@@ -20,12 +20,18 @@ public partial class DevicePopup : Window
 	private const double _margin = 6;
 
 	private static readonly TimeSpan _life = TimeSpan.FromSeconds(4);
+
+	// Наведение — не событие: человек сам спросил и сам смотрит. Четыре секунды здесь
+	// превратили бы карточку в панель, которая закрывает угол экрана после каждого
+	// похода мыши к часам.
+	private static readonly TimeSpan _glance = TimeSpan.FromSeconds(1.5);
 	private static readonly Duration _rise = new(TimeSpan.FromMilliseconds(380));
 	private static readonly Duration _fall = new(TimeSpan.FromMilliseconds(220));
 
 	private readonly Switcher _switcher;
 	private readonly DispatcherTimer _timer;
 	private AudioEndpoint? _device;
+	private TimeSpan _span = _life;
 
 	internal DevicePopup(Switcher switcher)
 	{
@@ -44,7 +50,35 @@ public partial class DevicePopup : Window
 	/// <summary>Показать карточку устройства. Повторный вызов заменяет содержимое и продлевает показ.</summary>
 	internal void Announce(AudioEndpoint device, bool arrived, bool becameDefault)
 	{
+		_span = _life;
+
 		Fill(device, arrived, becameDefault);
+
+		Show();
+		Place();
+		Rise();
+		Restart();
+	}
+
+	/// <summary>
+	/// Показать то, что звучит сейчас: карточку спросили наведением на значок, а не
+	/// событием. Устройство уже главное, решать нечего — кнопка не появится, и срок
+	/// показа короче.
+	/// </summary>
+	internal void Glance(AudioEndpoint device)
+	{
+		_span = _glance;
+
+		// Наведение приходит на каждое движение мыши. Поднимать уже поднятую карточку
+		// заново значило бы дёргать её всё время, что курсор стоит на значке.
+		if (IsVisible && _device?.Id == device.Id)
+		{
+			Restart();
+
+			return;
+		}
+
+		Fill(device, arrived: true, becameDefault: true);
 
 		Show();
 		Place();
@@ -140,6 +174,7 @@ public partial class DevicePopup : Window
 
 	private void Restart()
 	{
+		_timer.Interval = _span;
 		_timer.Stop();
 		_timer.Start();
 	}

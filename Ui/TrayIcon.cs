@@ -16,6 +16,11 @@ internal sealed class TrayIcon : IDisposable
 
 	private readonly Switcher _switcher = new();
 	private readonly NotifyIcon _icon;
+
+	// Мышь идёт через трей к часам и к чужим значкам, и такой проход длится меньше
+	// десятой доли секунды. Задержка отсекает их все, а наведение её не замечает.
+	private readonly System.Windows.Threading.DispatcherTimer _hover =
+		new() { Interval = TimeSpan.FromMilliseconds(350) };
 	private readonly Icon _iconActive = LoadIcon("app.ico");
 	private readonly Icon _iconPaused = LoadIcon("app-paused.ico");
 	private TrayMenu? _menu;
@@ -36,6 +41,16 @@ internal sealed class TrayIcon : IDisposable
 
 		_icon.DoubleClick += (_, _) => ShowWindow();
 
+		// Навели мышь — показать то же, что и на подключение, только о том, что звучит
+		// сейчас. Подсказки у значка для этого мало: заряд и значок устройства в строку
+		// из шестидесяти трёх знаков не поместятся.
+		_icon.MouseMove += (_, _) => _hover.Start();
+		_hover.Tick += (_, _) =>
+		{
+			_hover.Stop();
+			Glance();
+		};
+
 		// Меню строит и показывает программа: своё окно вместо чужого по правой кнопке.
 		_icon.MouseUp += (_, e) =>
 		{
@@ -46,11 +61,7 @@ internal sealed class TrayIcon : IDisposable
 			}
 		};
 
-		_switcher.Logged += ShowInTooltip;
-		_switcher.DevicesChanged += ShowCurrentInTooltip;
-
-		// Обход эфира идёт в своём потоке, а подсказка лотка живёт в чужом.
-		Beacon.Changed += () => Application.Current.Dispatcher.BeginInvoke(ShowCurrentInTooltip);
+		_switcher.Logged += Notify;
 		_switcher.Arrived += (device, isDefault) => Announce(device, arrived: true, isDefault);
 
 		// Гарнитуру только что включили — самое время послушать эфир: её заряд Windows не
@@ -91,25 +102,24 @@ internal sealed class TrayIcon : IDisposable
 			_popup.Announce(device, arrived, becameDefault);
 		});
 
-	// Журнал приходит из потока таймера и из COM-колбэка, а NotifyIcon — контрол WinForms:
-	// Значок молчит, пока ничего не происходит, и подсказка — единственное место, где можно
-	// увидеть заряд, не открывая окна. Событие важнее: оно перекрывает её до следующей смены.
-	private void ShowCurrentInTooltip() => Application.Current.Dispatcher.BeginInvoke(() =>
+	// Карточка по наведению: то же устройство, что сейчас по умолчанию. Подпись у значка
+	// при этом остаётся одним именем программы — два окошка об одном и том же рядом друг
+	// с другом читаются как дребезг, а карточка говорит то же самое и подробнее.
+	private void Glance()
 	{
-		if (Audio.GetDefault(EDataFlow.Render, ERole.Multimedia) is not { } device)
+		if (!Store.Current.Popup || Audio.GetDefault(EDataFlow.Render, ERole.Multimedia) is not { } device)
 		{
 			return;
 		}
 
-		var charge = Battery.Of(device.Node) is { } level ? $" · {level.Text}" : "";
-		Tooltip($"{device.Name}{charge}");
-	});
+		_popup ??= new DevicePopup(_switcher);
+		_popup.Glance(device);
+	}
 
+	// Журнал приходит из потока таймера и из COM-колбэка, а NotifyIcon — контрол WinForms:
 	// его свойства можно трогать только с того потока, где он создан.
-	private void ShowInTooltip(LogEntry entry) => Application.Current.Dispatcher.BeginInvoke(() =>
+	private void Notify(LogEntry entry) => Application.Current.Dispatcher.BeginInvoke(() =>
 	{
-		Tooltip(Localization.Of(entry));
-
 		var said = Localization.Of(entry.Message);
 		if (Store.Current.Notify && _switchKeys.Contains(entry.Message.Key)
 			&& !Balloon.Show(_icon, "AudioDirigent", said))
@@ -199,14 +209,9 @@ internal sealed class TrayIcon : IDisposable
 		return new Icon(stream);
 	}
 
-	private void Tooltip(string text)
-	{
-		var full = $"AudioDirigent — {text}";
-		_icon.Text = full.Length <= 63 ? full : full[..63];
-	}
-
 	public void Dispose()
 	{
+		_hover.Stop();
 		_hotkeys?.Dispose();
 		_menu?.Close();
 		_popup?.Close();
