@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -54,9 +54,14 @@ internal static unsafe partial class Beacon
 	private static readonly Dictionary<string, (Charge Charge, DateTime Heard)> _heard = [];
 	private static readonly Dictionary<string, Sighting> _sweep = [];
 
+	// Гарнитура приходит в систему пачкой устройств, и толчок придёт на каждое: ждать
+	// между обходами дольше самого обхода — чтобы второй не начался поверх первого.
+	private static readonly TimeSpan _settle = TimeSpan.FromSeconds(15);
+
 	private static readonly IntPtr _callback = Callback();
 	private static Timer? _timer;
 	private static bool _fresh;
+	private static DateTime _began = DateTime.MinValue;
 
 	/// <summary>
 	/// Эфир принёс число, которого не было. Без этого заряд появлялся бы только случайно:
@@ -78,6 +83,21 @@ internal static unsafe partial class Beacon
 		// Поле нужно только затем, чтобы таймер не собрали как мусор вместе с последней
 		// ссылкой на него: программа живёт сутками, и сборщик успевает.
 		_timer = new Timer(_ => Listen(Store.Current.BeaconSeconds), null, TimeSpan.Zero, every);
+	}
+
+	/// <summary>
+	/// Послушать эфир, не дожидаясь очереди: рядом только что появилось устройство. Без
+	/// этого заряд свежеподключённой гарнитуры ждал бы следующего обхода — до пяти минут,
+	/// то есть дольше, чем о нём вообще спрашивают.
+	/// </summary>
+	public static void Nudge()
+	{
+		if (_timer is null || DateTime.UtcNow - _began < _settle)
+		{
+			return;
+		}
+
+		_timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(Store.Current.BeaconMinutes));
 	}
 
 	/// <summary>Заряд устройства с этим адресом; null — маяк к нему не привязан или давно молчит.</summary>
@@ -132,6 +152,7 @@ internal static unsafe partial class Beacon
 
 	private static void Session(int seconds)
 	{
+		_began = DateTime.UtcNow;
 		_fresh = false;
 
 		var watcher = Create();
