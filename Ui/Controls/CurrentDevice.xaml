@@ -6,11 +6,13 @@
     <!-- Одна строка, а не карточка: то же имя стоит и в списке, и повторять его крупным
          шрифтом в рамке значило бы тратить на него полокна -->
     <Grid Margin="2,0,2,0">
+        <!-- Пустая доля справа, а не растянутое имя: заряд относится к устройству и
+             должен стоять при нём. У правого края он читался как показание самого окна -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
         <Ellipse x:Name="StateDot" Width="9" Height="9" Margin="0,0,12,0" VerticalAlignment="Center"
@@ -19,7 +21,7 @@
         <TextBlock x:Name="DeviceName" Grid.Column="1" Style="{DynamicResource Headline}" Text="—"
                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
-        <local:BatteryBar x:Name="Charge" Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center"/>
+        <local:BatteryBar x:Name="Charge" Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center"/>
 
     </Grid>
 </UserControl>

@@ -30,6 +30,11 @@
     <SolidColorBrush x:Key="BadgeFill" Color="#3A3A3C"/>
     <SolidColorBrush x:Key="BadgeText" Color="#F2F2F7"/>
 
+    <!-- «Слежу» — состояние хорошее, и значок об этом говорит зелёным. Системный акцент
+         здесь не годится: он у каждого свой и о работе программы не сообщает ничего -->
+    <SolidColorBrush x:Key="GoodFaint" Color="#1F3526"/>
+    <SolidColorBrush x:Key="GoodText" Color="#91E2A8"/>
+
     <sys:Double xmlns:sys="clr-namespace:System;assembly=System.Runtime" x:Key="CardShadowOpacity">0.5</sys:Double>
 
 </ResourceDictionary>

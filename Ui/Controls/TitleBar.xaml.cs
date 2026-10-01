@@ -35,7 +35,8 @@ public partial class TitleBar : UserControl
 	{
 		StateText.Text = Localization.Get(paused ? "langPausedBadge" : "langWatching");
 		StateDot.Fill = (Brush)FindResource(paused ? "Muted" : "Good");
-		StateBadge.Background = (Brush)FindResource(paused ? "BadgeFill" : "AccentFaint");
+		StateText.Foreground = (Brush)FindResource(paused ? "TextDim" : "GoodText");
+		StateBadge.Background = (Brush)FindResource(paused ? "BadgeFill" : "GoodFaint");
 	}
 
 	private void OnBadgeClick(object sender, MouseButtonEventArgs e) => PauseToggled?.Invoke();
