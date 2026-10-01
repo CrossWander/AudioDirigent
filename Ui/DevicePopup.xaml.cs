@@ -21,10 +21,16 @@ public partial class DevicePopup : Window
 
 	private static readonly TimeSpan _life = TimeSpan.FromSeconds(4);
 
-	// Наведение — не событие: человек сам спросил и сам смотрит. Четыре секунды здесь
-	// превратили бы карточку в панель, которая закрывает угол экрана после каждого
-	// похода мыши к часам.
-	private static readonly TimeSpan _glance = TimeSpan.FromSeconds(1.5);
+	// Наведение — не событие: карточка висит, пока курсор на значке, и уходит, когда он
+	// ушёл. Срока жизни у неё нет: значок не шлёт события «мышь ушла» вовсе, а события
+	// движения перестают приходить, стоит руке замереть, — поэтому следим за курсором сами.
+	private static readonly TimeSpan _watch = TimeSpan.FromMilliseconds(150);
+
+	/// <summary>
+	/// Насколько далеко курсор ещё считается стоящим на том же значке. Значок в трее —
+	/// это два десятка точек в поперечнике, соседний стоит сразу за ним.
+	/// </summary>
+	internal const int Reach = 26;
 	private static readonly Duration _rise = new(TimeSpan.FromMilliseconds(380));
 	private static readonly Duration _fall = new(TimeSpan.FromMilliseconds(220));
 
@@ -33,13 +39,17 @@ public partial class DevicePopup : Window
 	private AudioEndpoint? _device;
 	private TimeSpan _span = _life;
 
+	// Карточку позвали наведением: она живёт по курсору, а не по часам.
+	private bool _glancing;
+	private System.Drawing.Point _anchor;
+
 	internal DevicePopup(Switcher switcher)
 	{
 		_switcher = switcher;
 		InitializeComponent();
 
 		_timer = new DispatcherTimer { Interval = _life };
-		_timer.Tick += (_, _) => Dismiss();
+		_timer.Tick += (_, _) => Tick();
 
 		// Пока мышь на карточке, она не исчезает: иначе кнопку было бы не нажать —
 		// человек ведёт к ней курсор ровно те секунды, что карточка живёт.
@@ -51,6 +61,7 @@ public partial class DevicePopup : Window
 	internal void Announce(AudioEndpoint device, bool arrived, bool becameDefault)
 	{
 		_span = _life;
+		_glancing = false;
 
 		Fill(device, arrived, becameDefault);
 
@@ -67,7 +78,9 @@ public partial class DevicePopup : Window
 	/// </summary>
 	internal void Glance(AudioEndpoint device)
 	{
-		_span = _glance;
+		_span = _watch;
+		_glancing = true;
+		_anchor = WinFormsCursor.Position;
 
 		// Наведение приходит на каждое движение мыши. Поднимать уже поднятую карточку
 		// заново значило бы дёргать её всё время, что курсор стоит на значке.
@@ -172,6 +185,31 @@ public partial class DevicePopup : Window
 		});
 	}
 
+	// Час карточки пробил. Позванная событием — уходит; позванная наведением — только
+	// если курсор ушёл со значка и не перебрался на неё саму.
+	private void Tick()
+	{
+		if (!_glancing)
+		{
+			Dismiss();
+
+			return;
+		}
+
+		var now = WinFormsCursor.Position;
+
+		if (IsMouseOver || Near(now, _anchor))
+		{
+			return;
+		}
+
+		Dismiss();
+	}
+
+	/// <summary>Курсор не сходил со значка: отойти дальше его ширины — это уже уйти.</summary>
+	internal static bool Near(System.Drawing.Point now, System.Drawing.Point then) =>
+		Math.Abs(now.X - then.X) <= Reach && Math.Abs(now.Y - then.Y) <= Reach;
+
 	private void Restart()
 	{
 		_timer.Interval = _span;
@@ -182,6 +220,7 @@ public partial class DevicePopup : Window
 	private void Dismiss()
 	{
 		_timer.Stop();
+		_glancing = false;
 
 		var slide = new DoubleAnimation(ActualHeight, _fall) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
 		var fade = new DoubleAnimation(0, _fall);

@@ -21,6 +21,9 @@ internal sealed class TrayIcon : IDisposable
 	// десятой доли секунды. Задержка отсекает их все, а наведение её не замечает.
 	private readonly System.Windows.Threading.DispatcherTimer _hover =
 		new() { Interval = TimeSpan.FromMilliseconds(350) };
+
+	// Где курсор был, когда значок в последний раз сообщил о движении над собой.
+	private System.Drawing.Point _overAt;
 	private readonly Icon _iconActive = LoadIcon("app.ico");
 	private readonly Icon _iconPaused = LoadIcon("app-paused.ico");
 	private TrayMenu? _menu;
@@ -44,11 +47,23 @@ internal sealed class TrayIcon : IDisposable
 		// Навели мышь — показать то же, что и на подключение, только о том, что звучит
 		// сейчас. Подсказки у значка для этого мало: заряд и значок устройства в строку
 		// из шестидесяти трёх знаков не поместятся.
-		_icon.MouseMove += (_, _) => _hover.Start();
+		_icon.MouseMove += (_, _) =>
+		{
+			_overAt = System.Windows.Forms.Cursor.Position;
+			_hover.Start();
+		};
+
 		_hover.Tick += (_, _) =>
 		{
 			_hover.Stop();
-			Glance();
+
+			// За эти миллисекунды курсор мог уйти дальше — к часам или к соседнему значку.
+			// Сам значок об этом не скажет: событий он больше не шлёт, и отсчёт, начатый
+			// первым же движением, досчитал бы до конца и над пустым местом.
+			if (DevicePopup.Near(System.Windows.Forms.Cursor.Position, _overAt))
+			{
+				Glance();
+			}
 		};
 
 		// Меню строит и показывает программа: своё окно вместо чужого по правой кнопке.
