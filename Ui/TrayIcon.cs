@@ -54,7 +54,8 @@ internal sealed class TrayIcon : IDisposable
 		_switcher.Arrived += (device, isDefault) => Announce(device, arrived: true, isDefault);
 
 		// Гарнитуру только что включили — самое время послушать эфир: её заряд Windows не
-		// знает, а сама она объявляет его как раз сейчас.
+		// знает, а сама она объявляет его как раз сейчас. Унесли — сверяемся, осталось ли
+		// рядом хоть что-то по радио, и если нет, перестаём слушать вовсе.
 		_switcher.Arrived += (device, _) =>
 		{
 			if (device.Bluetooth)
@@ -62,6 +63,8 @@ internal sealed class TrayIcon : IDisposable
 				Beacon.Nudge();
 			}
 		};
+
+		_switcher.Left += _ => Beacon.Follow();
 		_switcher.Left += device => Announce(device, arrived: false, becameDefault: false);
 		_switcher.Start();
 		_switcher.Log("langLogBuild", Build.Version);

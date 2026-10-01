@@ -46,6 +46,8 @@ internal static unsafe partial class Beacon
 
 	private const int _noInterface = unchecked((int)0x8000_4002);
 
+	private static readonly TimeSpan _never = Timeout.InfiniteTimeSpan;
+
 	// Заряд меняется медленно, а гарнитуру уносят из комнаты быстро: показывать вчерашнее
 	// число нечестно, показывать пустоту после каждой паузы в эфире — суетливо.
 	private static readonly TimeSpan _stale = TimeSpan.FromMinutes(30);
@@ -54,14 +56,14 @@ internal static unsafe partial class Beacon
 	private static readonly Dictionary<string, (Charge Charge, DateTime Heard)> _heard = [];
 	private static readonly Dictionary<string, Sighting> _sweep = [];
 
-	// Гарнитура приходит в систему пачкой устройств, и толчок придёт на каждое: ждать
-	// между обходами дольше самого обхода — чтобы второй не начался поверх первого.
-	private static readonly TimeSpan _settle = TimeSpan.FromSeconds(15);
+	// Обход идёт считанные секунды, но запускать второй поверх первого нельзя: приёмник
+	// в системе один. Толчок, пришедший во время обхода, ждёт этого срока и слушает после.
+	private static readonly TimeSpan _settle = TimeSpan.FromSeconds(20);
 
 	private static readonly IntPtr _callback = Callback();
 	private static Timer? _timer;
 	private static bool _fresh;
-	private static DateTime _began = DateTime.MinValue;
+	private static volatile bool _busy;
 
 	/// <summary>
 	/// Эфир принёс число, которого не было. Без этого заряд появлялся бы только случайно:
@@ -78,27 +80,43 @@ internal static unsafe partial class Beacon
 			return;
 		}
 
-		var every = TimeSpan.FromMinutes(Store.Current.BeaconMinutes);
-
 		// Поле нужно только затем, чтобы таймер не собрали как мусор вместе с последней
-		// ссылкой на него: программа живёт сутками, и сборщик успевает.
-		_timer = new Timer(_ => Listen(Store.Current.BeaconSeconds), null, TimeSpan.Zero, every);
+		// ссылкой на него: программа живёт сутками, и сборщик успевает. Заводим его
+		// молчащим: слушать эфир, когда рядом нет ни одного радиоустройства, незачем.
+		_timer = new Timer(_ => Listen(Store.Current.BeaconSeconds), null, _never, _never);
+
+		Follow();
 	}
+
+	/// <summary>
+	/// Свериться с тем, что сейчас в системе: есть радиоустройство — слушаем, нет — молчим.
+	/// Вызывается, когда состав устройств поменялся, и на запуске.
+	/// </summary>
+	public static void Follow()
+	{
+		if (Switcher.AnyWireless())
+		{
+			Nudge();
+		}
+		else
+		{
+			Rest();
+		}
+	}
+
+	/// <summary>Перестать слушать: радиоустройств рядом не осталось, и слушать некого.</summary>
+	public static void Rest() => _timer?.Change(_never, _never);
 
 	/// <summary>
 	/// Послушать эфир, не дожидаясь очереди: рядом только что появилось устройство. Без
 	/// этого заряд свежеподключённой гарнитуры ждал бы следующего обхода — до пяти минут,
 	/// то есть дольше, чем о нём вообще спрашивают.
 	/// </summary>
-	public static void Nudge()
-	{
-		if (_timer is null || DateTime.UtcNow - _began < _settle)
-		{
-			return;
-		}
-
-		_timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(Store.Current.BeaconMinutes));
-	}
+	public static void Nudge() =>
+		// Обход, который идёт прямо сейчас, мог начаться до того, как устройство
+		// подключилось, и ничего о нём не услышать. Поэтому не пропускаем толчок, а
+		// откладываем — но срок между обходами в любом случае отсчитывается заново.
+		_timer?.Change(_busy ? _settle : TimeSpan.Zero, TimeSpan.FromMinutes(Store.Current.BeaconMinutes));
 
 	/// <summary>Заряд устройства с этим адресом; null — маяк к нему не привязан или давно молчит.</summary>
 	public static Charge? Heard(string? mac)
@@ -152,7 +170,6 @@ internal static unsafe partial class Beacon
 
 	private static void Session(int seconds)
 	{
-		_began = DateTime.UtcNow;
 		_fresh = false;
 
 		var watcher = Create();
@@ -161,6 +178,8 @@ internal static unsafe partial class Beacon
 		{
 			return;
 		}
+
+		_busy = true;
 
 		try
 		{
@@ -191,6 +210,7 @@ internal static unsafe partial class Beacon
 		finally
 		{
 			Release(watcher);
+			_busy = false;
 
 			if (_fresh)
 			{

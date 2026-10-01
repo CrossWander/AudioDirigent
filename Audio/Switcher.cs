@@ -178,6 +178,12 @@ internal sealed class Switcher : IDisposable
 	/// <summary>Устройство скрыто приёмником: он сообщает, что железо сейчас выключено.</summary>
 	public bool Hidden(AudioEndpoint device) => _probe is { } probe && DeviceOn == false && probe.Covers(device);
 
+	/// <summary>
+	/// Есть ли сейчас в системе хоть одно живое устройство Bluetooth. Этим маяк решает,
+	/// слушать эфир или молчать: без радиоустройств слушать в нём нечего.
+	/// </summary>
+	public static bool AnyWireless() => Live().Any(device => device.Bluetooth);
+
 	private static IEnumerable<AudioEndpoint> Live() =>
 		Audio.ListDevices(EDataFlow.Render, DeviceState.Active)
 			.Concat(Audio.ListDevices(EDataFlow.Capture, DeviceState.Active));
